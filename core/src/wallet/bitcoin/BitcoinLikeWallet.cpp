@@ -75,41 +75,61 @@ namespace ledger {
                 // Create extended key
                 // Serialize and store
             auto self = getSelf();
+            std::cout << "-- Before async --" << std::endl;
             return async<api::ExtendedKeyAccountCreationInfo>([self, info] () -> api::ExtendedKeyAccountCreationInfo {
+                std::cout << "-- Function start --" << std::endl;
                 if (info.owners.size() != info.derivations.size() || info.owners.size() != info.chainCodes.size() ||
                     info.publicKeys.size() != info.owners.size())
                     throw make_exception(api::ErrorCode::INVALID_ARGUMENT, "Account creation info are inconsistent (size of arrays differs)");
+                std::cout << "-- After asserts --" << std::endl;
                 api::ExtendedKeyAccountCreationInfo result;
+                std::cout << "-- 1 --" << std::endl;
                 std::set<std::string> ownersSet(info.owners.begin(), info.owners.end());
+                std::cout << "-- 2 --" << std::endl;
                 auto ownersIterator = ownersSet.begin();
+                std::cout << "-- 3 --" << std::endl;
                 auto ownersEndIterator = ownersSet.end();
+                std::cout << "-- 4 --" << std::endl;
                 auto size = info.owners.size();
+                std::cout << "-- 5 --" << std::endl;
+                std::cout << "Owner FROM THREAD " << info.owners[0] << std::endl;
+                std::cout << "Owner FROM SET " << *ownersSet.begin() << std::endl;
                 while (ownersIterator != ownersEndIterator) {
+                    std::cout << "-- Iterate owners --" << std::endl;
                     int32_t firstOccurence = -1;
                     int32_t secondOccurence = -1;
 
                     for (auto i = 0; i < size; i++) {
+                        std::cout << "-- Iterate key --" << std::endl;
                         if (info.owners[i] != *ownersIterator) continue;
+                        std::cout << "-- Iterate key after assert --" << std::endl;
                         if (info.publicKeys[i].size() != 33 && info.publicKeys[i].size() != 65)
                             throw make_exception(api::ErrorCode::INVALID_ARGUMENT, "Account creation info are inconsistent (contains invalid public key(s))");
-                        if (firstOccurence == -1)
+                        std::cout << "-- Iterate key all asserts done --" << std::endl;
+                        if (firstOccurence == -1) {
                             firstOccurence = i;
-                        else {
+                        } else {
                             secondOccurence = i;
                             break;
                         }
                     }
-                    ownersIterator++;
+                    std::cout << "-- 6 --" << std::endl;
+                    std::cout << "-- 7 --" << std::endl;
                     if (firstOccurence == -1 || secondOccurence == -1)
                         throw make_exception(api::ErrorCode::INVALID_ARGUMENT, "Account creation info are inconsistent (missing derivation(s))");
+                    std::cout << "-- 8 --" << std::endl;
                     DerivationPath firstOccurencePath(info.derivations[firstOccurence]);
+                    std::cout << "-- 9 --" << std::endl;
                     DerivationPath secondOccurencePath(info.derivations[secondOccurence]);
+                    std::cout << "-- 10 --" << std::endl;
                     if (secondOccurencePath.getParent() != firstOccurencePath) {
+                        std::cout << "-- 11 --" << std::endl;
                         std::swap(firstOccurencePath, secondOccurencePath);
                         std::swap(firstOccurence, secondOccurence);
                     }
                     if (secondOccurencePath.getParent() != firstOccurencePath)
                         throw make_exception(api::ErrorCode::INVALID_ARGUMENT, "Account creation info are inconsistent (wrong paths)");
+                    std::cout << "-- 12 --" << std::endl;
                     auto xpub = BitcoinLikeExtendedPublicKey::fromRaw(
                             self->getCurrency().bitcoinLikeNetworkParameters.value(),
                             Option<std::vector<uint8_t>>(info.publicKeys[firstOccurence]).toOptional(),
@@ -117,13 +137,19 @@ namespace ledger {
                             info.chainCodes[secondOccurence],
                             info.derivations[secondOccurence]
                     );
+                    std::cout << "-- 13 -- size: "  << result.owners.size()  << " owner:  " << *ownersIterator << std::endl;
                     result.owners.push_back(*ownersIterator);
+                    std::cout << "-- 14 --" << std::endl;
                     result.derivations.push_back(info.derivations[secondOccurence]);
+                    std::cout << "-- 15 --" << std::endl;
                     result.extendedKeys.push_back(xpub->toBase58());
+                    ownersIterator++;
                 }
+                std::cout << "-- Function end --" << std::endl;
                 result.index = info.index;
                 return result;
             }).flatMap<std::shared_ptr<ledger::core::api::Account>>(getContext(), [self] (const api::ExtendedKeyAccountCreationInfo& info) -> Future<std::shared_ptr<ledger::core::api::Account>> {
+                std::cout << "-- Flat mapping --" << std::endl;
                 return self->newAccountWithExtendedKeyInfo(info);
             });
         }
