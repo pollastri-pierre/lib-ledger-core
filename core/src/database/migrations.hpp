@@ -165,6 +165,11 @@ namespace ledger {
         // Add status column on XTZ transactions
         template <> void migrate<17>(soci::session& sql);
         template <> void rollback<17>(soci::session& sql);
+
+        // Stellar support
+        template <> void migrate<18>(soci::session& sql);
+        template <> void rollback<18>(soci::session& sql);
+
     }
 }
 
