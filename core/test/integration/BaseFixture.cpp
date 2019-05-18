@@ -118,7 +118,7 @@ void BaseFixture::TearDown() {
 std::shared_ptr<WalletPool> BaseFixture::newDefaultPool(const std::string &poolName, const std::string &password) {
     return WalletPool::newInstance(
             poolName,
-            "",
+            password,
             http,
             ws,
             resolver,
