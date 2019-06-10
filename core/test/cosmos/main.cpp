@@ -1,8 +1,8 @@
 /*
  *
- * BTCBech32
+ * main
  *
- * Created by El Khalil Bellakrid on 18/02/2019.
+ * Created by El Khalil Bellakrid on 09/06/2019.
  *
  * The MIT License (MIT)
  *
@@ -28,37 +28,9 @@
  *
  */
 
+#include <gtest/gtest.h>
 
-#ifndef LEDGER_CORE_BTCBECH32_H
-#define LEDGER_CORE_BTCBECH32_H
-
-#include "Bech32.h"
-#include "Bech32Parameters.h"
-// Reference: https://github.com/sipa/bech32
-namespace ledger {
-    namespace core {
-        class BTCBech32 : public Bech32 {
-        public:
-            BTCBech32(const std::string &networkIdentifier, size_t offsetConversion = 1) {
-                _bech32Params = Bech32Parameters::getBech32Params(networkIdentifier);
-                _offsetConversion = offsetConversion;
-            };
-
-            uint64_t polymod(const std::vector<uint8_t>& values) override;
-
-            std::vector<uint8_t> expandHrp(const std::string& hrp) override;
-
-            std::string encode(const std::vector<uint8_t>& hash,
-                               const std::vector<uint8_t>& version) override;
-
-            std::pair<std::vector<uint8_t>, std::vector<uint8_t>>
-            decode(const std::string& str) override;
-
-        protected:
-            size_t _offsetConversion;
-        };
-    }
+int main(int argc, char **argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
-
-#endif //LEDGER_CORE_BTCBECH32_H
