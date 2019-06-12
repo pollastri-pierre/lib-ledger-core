@@ -35,9 +35,7 @@
 #include <wallet/currencies.hpp>
 #include <api/Address.hpp>
 #include <utils/hex.h>
-#include <bitcoin/bech32/Bech32Factory.h>
-#include <bitcoin/bech32/BTCBech32.h>
-#include <bitcoin/bech32/Bech32Parameters.h>
+#include "CosmosBech32.h"
 #include <collections/vector.hpp>
 #include <crypto/HashAlgorithm.h>
 #include <crypto/HASH160.hpp>
@@ -47,36 +45,6 @@
 
 using namespace ledger::core::api;
 using namespace ledger::core;
-
-namespace ledger {
-    namespace core {
-        class CosmosBech32 : public BTCBech32 {
-        public:
-            CosmosBech32(bool isPubKey = false) : BTCBech32("btc", 0) {
-                static const Bech32Parameters::Bech32Struct COSMOS = {
-                        "cosmos",
-                        "cosmos",
-                        "1",
-                        6,
-                        {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
-                        {0x01},
-                        {0x01}
-                };
-
-                static const Bech32Parameters::Bech32Struct COSMOS_PUB = {
-                        "cosmos",
-                        "cosmospub",
-                        "1",
-                        6,
-                        {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
-                        {0x00},
-                        {0x00}
-                };
-                _bech32Params = isPubKey ? COSMOS_PUB : COSMOS;
-            };
-        };
-    }
-}
 
 TEST(CosmosAddress, AddressFromPubKey) {
     {
@@ -118,6 +86,58 @@ TEST(CosmosAddress, AddressFromPubKey) {
         std::cout<<">>> "<<bech32Addr<<std::endl;
         auto decodedHash160 = bech32->decode(bech32Addr);
         EXPECT_EQ(hex::toString(decodedHash160.second), hex::toString(publicKeyHash160));
+    }
+}
+
+// Reference: https://github.com/cosmos/cosmos-sdk/blob/master/crypto/ledger_test.go
+TEST(CosmosAddress, AddressFromPubKeys) {
+    std::vector<std::string> prefixedPubKeys {
+            "cosmospub1addwnpepqd87l8xhcnrrtzxnkql7k55ph8fr9jarf4hn6udwukfprlalu8lgw0urza0",
+            "cosmospub1addwnpepqfsdqjr68h7wjg5wacksmqaypasnra232fkgu5sxdlnlu8j22ztxvlqvd65",
+            "cosmospub1addwnpepqw3xwqun6q43vtgw6p4qspq7srvxhcmvq4jrx5j5ma6xy3r7k6dtxmrkh3d",
+            "cosmospub1addwnpepqvez9lrp09g8w7gkv42y4yr5p6826cu28ydrhrujv862yf4njmqyyjr4pjs",
+            "cosmospub1addwnpepq06hw3enfrtmq8n67teytcmtnrgcr0yntmyt25kdukfjkerdc7lqg32rcz7",
+            "cosmospub1addwnpepqg3trf2gd0s2940nckrxherwqhgmm6xd5h4pcnrh4x7y35h6yafmcpk5qns",
+            "cosmospub1addwnpepqdm6rjpx6wsref8wjn7ym6ntejet430j4szpngfgc20caz83lu545vuv8hp",
+            "cosmospub1addwnpepqvdhtjzy2wf44dm03jxsketxc07vzqwvt3vawqqtljgsr9s7jvydjmt66ew",
+            "cosmospub1addwnpepqwystfpyxwcava7v3t7ndps5xzu6s553wxcxzmmnxevlzvwrlqpzz695nw9",
+            "cosmospub1addwnpepqw970u6gjqkccg9u3rfj99857wupj2z9fqfzy2w7e5dd7xn7kzzgkgqch0r"
+    };
+
+    std::vector<std::string> bech32Addresses {
+            "cosmos1w34k53py5v5xyluazqpq65agyajavep2rflq6h",
+            "cosmos19ewxwemt6uahejvwf44u7dh6tq859tkyvarh2q",
+            "cosmos1a07dzdjgjsntxpp75zg7cgatgq0udh3pcdcxm3",
+            "cosmos1qvw52lmn9gpvem8welghrkc52m3zczyhlqjsl7",
+            "cosmos17m78ka80fqkkw2c4ww0v4xm5nsu2drgrlm8mn2",
+            "cosmos1ferh9ll9c452d2p8k2v7heq084guygkn43up9e",
+            "cosmos10vf3sxmjg96rqq36axcphzfsl74dsntuehjlw5",
+            "cosmos1cq83av8cmnar79h0rg7duh9gnr7wkh228a7fxg",
+            "cosmos1dszhfrt226jy5rsre7e48vw9tgwe90uerfyefa",
+            "cosmos1734d7qsylzrdt05muhqqtpd90j8mp4y6rzch8l"
+    };
+
+    int index = 0;
+    for (auto &prefixedPubKey : prefixedPubKeys) {
+        // From bech32 pubKey to pubKeyHash160
+        auto pkBech32 = std::make_shared<CosmosBech32>(true);
+        auto pkDecodedHash160 = pkBech32->decode(prefixedPubKey);
+
+        // Byte array to encode : <PrefixBytes> <Length> <ByteArray> hence the + 5
+        std::vector<uint8_t> secp256k1PubKey(pkDecodedHash160.second.begin() + 5, pkDecodedHash160.second.end());
+
+        std::vector<uint8_t> prefixAndSize{0xEB, 0x5A, 0xE9, 0x87, 0x21};
+        auto encoded = vector::concat(prefixAndSize, secp256k1PubKey);
+
+        // Get publicKeyHash160
+        HashAlgorithm hashAlgorithm("cosmos");
+        auto publicKeyHash160 = HASH160::hash(secp256k1PubKey, hashAlgorithm);
+
+        // Encode to bech32
+        auto bech32 = std::make_shared<CosmosBech32>();
+        auto bech32AddrResult = bech32->encode(publicKeyHash160, std::vector<uint8_t>());
+        EXPECT_EQ(bech32AddrResult, bech32Addresses[index]);
+        index++;
     }
 }
 
