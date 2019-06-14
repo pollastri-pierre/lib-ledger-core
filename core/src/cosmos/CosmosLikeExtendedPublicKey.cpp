@@ -110,7 +110,7 @@ namespace ledger {
                                                 const Option<std::string>& path) {
             auto &params = currency.cosmosLikeNetworkParameters.value();
             if (bech32PubKey.find("cosmospub") == std::string::npos) {
-                throw api::Error(api::ErrorCode::INVALID_ARGUMENT, "Invalid Bech32 public Key: should be prefixed with \"cosmospub\"");
+                throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Invalid Bech32 public Key: should be prefixed with \"cosmospub\"");
             }
             // From bech32 pubKey to pubKeyHash160
             auto pkBech32 = std::make_shared<CosmosBech32>(true);
@@ -118,7 +118,7 @@ namespace ledger {
 
             //Check version
             if (std::vector<uint8_t>(decodedPk.second.begin(), decodedPk.second.begin() + params.PubKeyPrefix.size()) != params.PubKeyPrefix) {
-                throw api::Error(api::ErrorCode::INVALID_ARGUMENT, "Invalid Bech32 public Key: wrong public key version");
+                throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Invalid Bech32 public Key: wrong public key version");
             }
 
             // Byte array to encode : <PrefixBytes> <Length> <ByteArray> hence the + 5 e.g. {0xEB, 0x5A, 0xE9, 0x87, 0x21}

@@ -62,7 +62,6 @@ TEST(CosmosAddress, AddressFromPubKey) {
 
         // Byte array to encode : <PrefixBytes> <Length> <ByteArray> hence the + 5
         std::vector<uint8_t> secp256k1PubKey(pkDecodedHash160.second.begin() + 5, pkDecodedHash160.second.end());
-        std::cout<<" ===== "<<hex::toString(secp256k1PubKey)<<std::endl;
 
         std::vector<uint8_t> prefixAndSize{0xEB, 0x5A, 0xE9, 0x87, 0x21};
         auto encoded = vector::concat(prefixAndSize, secp256k1PubKey);
