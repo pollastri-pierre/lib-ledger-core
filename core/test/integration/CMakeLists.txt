@@ -193,3 +193,5 @@ add_test (NAME ledger-core-integration-TezosMakeTransaction.ParseSignedRawOrigin
 add_test (NAME ledger-core-integration-TezosLikeWalletSynchronization.MediumXpubSynchronization COMMAND ledger-core-integration-tests --gtest_filter="TezosLikeWalletSynchronization.MediumXpubSynchronization")
 
 add_test (NAME ledger-core-integration-CosmosMakeTransaction.ParseSignedRawTransaction COMMAND ledger-core-integration-tests --gtest_filter="CosmosMakeTransaction.ParseSignedRawTransaction")
+add_test (NAME ledger-core-integration-CosmosLikeWalletSynchronization.GetAccountWithExplorer COMMAND ledger-core-integration-tests --gtest_filter="CosmosLikeWalletSynchronization.GetAccountWithExplorer")
+

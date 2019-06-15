@@ -41,40 +41,11 @@ namespace ledger {
             _explorer = explorer;
         }
 
-        void CosmosLikeBlockchainExplorerAccountSynchronizer::updateCurrentBlock(
-                std::shared_ptr<AbstractBlockchainExplorerAccountSynchronizer::SynchronizationBuddy> &buddy,
-                const std::shared_ptr<api::ExecutionContext> &context) {
-            _explorer->getCurrentBlock().onComplete(context,
-                                                    [buddy](const TryPtr<CosmosLikeBlockchainExplorer::Block> &block) {
-                                                        if (block.isSuccess()) {
-                                                            soci::session sql(
-                                                                    buddy->account->getWallet()->getDatabase()->getPool());
-                                                            buddy->account->putBlock(sql, *block.getValue());
-                                                        }
-                                                    });
-        }
-
-        void CosmosLikeBlockchainExplorerAccountSynchronizer::updateTransactionsToDrop(soci::session &sql,
-                                                                                       std::shared_ptr<SynchronizationBuddy> &buddy,
-                                                                                       const std::string &accountUid) {
-            //Get all transactions in DB that may be dropped (txs without block_uid)
-            soci::rowset<soci::row> rows = (sql.prepare
-                    << "SELECT op.uid, atom_op.transaction_hash FROM operations AS op "
-                            "LEFT OUTER JOIN cosmos_operations AS atom_op ON atom_op.uid = op.uid "
-                            "WHERE op.block_uid IS NULL AND op.account_uid = :uid ", soci::use(accountUid));
-
-            for (auto &row : rows) {
-                if (row.get_indicator(0) != soci::i_null && row.get_indicator(1) != soci::i_null) {
-                    buddy->transactionsToDrop.insert(
-                            std::pair<std::string, std::string>(row.get<std::string>(1), row.get<std::string>(0)));
-                }
-            }
-        }
-
         std::shared_ptr<ProgressNotifier<Unit>>
         CosmosLikeBlockchainExplorerAccountSynchronizer::synchronize(
                 const std::shared_ptr<CosmosLikeAccount> &account) {
-            return synchronizeAccount(account);
+            // TODO COSMOS Implement synchronization
+            return nullptr;
         }
 
         bool CosmosLikeBlockchainExplorerAccountSynchronizer::isSynchronizing() const {
@@ -86,14 +57,5 @@ namespace ledger {
 
         }
 
-        std::shared_ptr<CosmosBlockchainAccountSynchronizer>
-        CosmosLikeBlockchainExplorerAccountSynchronizer::getSharedFromThis() {
-            return shared_from_this();
-        }
-
-        std::shared_ptr<api::ExecutionContext>
-        CosmosLikeBlockchainExplorerAccountSynchronizer::getSynchronizerContext() {
-            return getContext();
-        }
     }
 }

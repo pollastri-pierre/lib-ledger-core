@@ -74,16 +74,7 @@ namespace ledger {
         void CosmosLikeAccount::inflateOperation(Operation &out,
                                                 const std::shared_ptr<const AbstractWallet> &wallet,
                                                 const CosmosLikeBlockchainExplorerTransaction &tx) {
-            out.accountUid = getAccountUid();
-            out.block = tx.block;
-            out.cosmosTransaction = Option<CosmosLikeBlockchainExplorerTransaction>(tx);
-            out.currencyName = getWallet()->getCurrency().name;
-            out.walletType = getWalletType();
-            out.walletUid = wallet->getWalletUid();
-            out.date = tx.receivedAt;
-            if (out.block.nonEmpty())
-                out.block.getValue().currencyName = wallet->getCurrency().name;
-            out.cosmosTransaction.getValue().block = out.block;
+            // TODO COSMOS Implement inflateOperation
         }
 
         int CosmosLikeAccount::putTransaction(soci::session &sql,
@@ -93,46 +84,48 @@ namespace ledger {
                 throw Exception(api::ErrorCode::RUNTIME_ERROR, "Wallet reference is dead.");
             }
 
-            if (transaction.block.nonEmpty()) {
-                putBlock(sql, transaction.block.getValue());
-            }
+            // if (transaction.block.nonEmpty()) {
+            //     putBlock(sql, transaction.block.getValue());
+            // }
 
             int result = FLAG_TRANSACTION_IGNORED;
 
-            Operation operation;
-            inflateOperation(operation, wallet, transaction);
-            std::vector<std::string> senders{transaction.sender};
-            operation.senders = std::move(senders);
-            std::vector<std::string> receivers{transaction.receiver};
-            operation.recipients = std::move(receivers);
-            operation.fees = transaction.gasLimit * transaction.gasPrice;
-            operation.trust = std::make_shared<TrustIndicator>();
-            operation.date = transaction.receivedAt;
+            // Operation operation;
+            // inflateOperation(operation, wallet, transaction);
+            // std::vector<std::string> senders{transaction.sender};
+            // operation.senders = std::move(senders);
+            // std::vector<std::string> receivers{transaction.receiver};
+            // operation.recipients = std::move(receivers);
+            // operation.fees = transaction.gasLimit * transaction.gasPrice;
+            // operation.trust = std::make_shared<TrustIndicator>();
+            // operation.date = transaction.receivedAt;
 
-            if (_accountAddress == transaction.sender) {
-                operation.amount = transaction.value;
-                operation.type = api::OperationType::SEND;
-                operation.refreshUid();
-                if (OperationDatabaseHelper::putOperation(sql, operation)) {
-                    emitNewOperationEvent(operation);
-                }
-                result = static_cast<int>(operation.type);
-            }
+            // if (_accountAddress == transaction.sender) {
+            //     operation.amount = transaction.value;
+            //     operation.type = api::OperationType::SEND;
+            //     operation.refreshUid();
+            //     if (OperationDatabaseHelper::putOperation(sql, operation)) {
+            //         emitNewOperationEvent(operation);
+            //     }
+            //     result = static_cast<int>(operation.type);
+            // }
 
-            if (_accountAddress == transaction.receiver) {
-                operation.amount = transaction.value;
-                operation.type = api::OperationType::RECEIVE;
-                operation.refreshUid();
-                if (OperationDatabaseHelper::putOperation(sql, operation)) {
-                    emitNewOperationEvent(operation);
-                }
-                result = static_cast<int>(operation.type);
-            }
+            // if (_accountAddress == transaction.receiver) {
+            //     operation.amount = transaction.value;
+            //     operation.type = api::OperationType::RECEIVE;
+            //     operation.refreshUid();
+            //     if (OperationDatabaseHelper::putOperation(sql, operation)) {
+            //         emitNewOperationEvent(operation);
+            //     }
+            //     result = static_cast<int>(operation.type);
+            // }
 
+            // return result;
+            // TODO COSMOS Implement putTransaction
             return result;
         }
-        
-        bool CosmosLikeAccount::putBlock(soci::session &sql, 
+
+        bool CosmosLikeAccount::putBlock(soci::session &sql,
                                          const CosmosLikeBlockchainExplorer::Block &block) {
             Block abstractBlock;
             abstractBlock.hash = block.hash;
