@@ -80,8 +80,8 @@ CosmosLikeTransactionBuilder = interface +c {
 	# Reset the current instance to its initial state
 	reset();
 	
-	static parseRawUnsignedTransaction(currency: Currency, rawTransaction: binary): CosmosLikeTransaction;
-	static parseRawSignedTransaction(currency: Currency, rawTransaction: binary): CosmosLikeTransaction;
+	static parseRawUnsignedTransaction(currency: Currency, rawTransaction: string): CosmosLikeTransaction;
+	static parseRawSignedTransaction(currency: Currency, rawTransaction: string): CosmosLikeTransaction;
 }
 	
 #Class representing a Cosmos account

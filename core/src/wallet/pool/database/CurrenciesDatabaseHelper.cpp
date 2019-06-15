@@ -29,6 +29,7 @@
  *
  */
 #include "CurrenciesDatabaseHelper.hpp"
+#include "../../../../../cmake-build-debug/include/ledger/core/api/ErrorCode.hpp"
 #include <api/BitcoinLikeNetworkParameters.hpp>
 #include <api/EthereumLikeNetworkParameters.hpp>
 #include <utils/hex.h>
@@ -36,6 +37,8 @@
 #include <api/Currency.hpp>
 #include <api/BitcoinLikeFeePolicy.hpp>
 #include <collections/strings.hpp>
+#include <utils/Exception.hpp>
+#include <api/WalletType.hpp>
 
 using namespace soci;
 
@@ -137,6 +140,10 @@ bool ledger::core::CurrenciesDatabaseHelper::insertCurrency(soci::session &sql,
                         use(TIPs);
                 break; // TODO INSERT MONERO NETWORK PARAMS
             }
+            case api::WalletType::COSMOS: {
+                throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing Implementation");
+            }
+
             case api::WalletType::MONERO:break;
         }
         inserted = true;
@@ -255,6 +262,9 @@ void ledger::core::CurrenciesDatabaseHelper::getAllCurrencies(soci::session &sql
                 }
 
                 break;
+            }
+            case api::WalletType::COSMOS: {
+                throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing implementation");
             }
             case api::WalletType::MONERO:break;
         }

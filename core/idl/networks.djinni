@@ -2,6 +2,7 @@
 @import "ethereum/addresses.djinni"
 @import "ripple/addresses.djinni"
 @import "tezos/addresses.djinni"
+@import "cosmos/addresses.djinni"
 
 # All available blockchain networks parameters.
 Networks = interface +c {
@@ -13,4 +14,6 @@ Networks = interface +c {
     static ripple(): RippleLikeNetworkParameters;
     # The Tezos network parameters.
     static tezos(): TezosLikeNetworkParameters;
+    # The Cosmos network parameters.
+    static cosmos(): CosmosLikeNetworkParameters;
 }

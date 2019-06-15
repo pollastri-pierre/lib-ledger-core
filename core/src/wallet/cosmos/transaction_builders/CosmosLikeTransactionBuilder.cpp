@@ -110,24 +110,23 @@ namespace ledger {
 
         std::shared_ptr<api::CosmosLikeTransaction>
         api::CosmosLikeTransactionBuilder::parseRawUnsignedTransaction(const api::Currency &currency,
-                                                                       const std::vector<uint8_t> &rawTransaction) {
+                                                                       const std::string &rawTransaction) {
             return ::ledger::core::CosmosLikeTransactionBuilder::parseRawTransaction(currency, rawTransaction, false);
         }
 
         std::shared_ptr<api::CosmosLikeTransaction>
         api::CosmosLikeTransactionBuilder::parseRawSignedTransaction(const api::Currency &currency,
-                                                                     const std::vector<uint8_t> &rawTransaction) {
+                                                                     const std::string &rawTransaction) {
             return ::ledger::core::CosmosLikeTransactionBuilder::parseRawTransaction(currency, rawTransaction, true);
         }
 
         std::shared_ptr<api::CosmosLikeTransaction>
         CosmosLikeTransactionBuilder::parseRawTransaction(const api::Currency &currency,
-                                                          const std::vector<uint8_t> &rawTransaction,
+                                                          const std::string &rawTransaction,
                                                           bool isSigned) {
             auto tx = std::make_shared<CosmosLikeTransactionApi>(currency);
-            BytesReader reader(rawTransaction);
-            //TODO
-            return tx;
+
+            throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing Implementation");
         }
     }
 }

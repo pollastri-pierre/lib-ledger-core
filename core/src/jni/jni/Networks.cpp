@@ -3,6 +3,7 @@
 
 #include "Networks.hpp"  // my header
 #include "BitcoinLikeNetworkParameters.hpp"
+#include "CosmosLikeNetworkParameters.hpp"
 #include "EthereumLikeNetworkParameters.hpp"
 #include "RippleLikeNetworkParameters.hpp"
 #include "TezosLikeNetworkParameters.hpp"
@@ -55,6 +56,15 @@ CJNIEXPORT jobject JNICALL Java_co_ledger_core_Networks_tezos(JNIEnv* jniEnv, jo
         DJINNI_FUNCTION_PROLOGUE0(jniEnv);
         auto r = ::ledger::core::api::Networks::tezos();
         return ::djinni::release(::djinni_generated::TezosLikeNetworkParameters::fromCpp(jniEnv, r));
+    } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, 0 /* value doesn't matter */)
+}
+
+CJNIEXPORT jobject JNICALL Java_co_ledger_core_Networks_cosmos(JNIEnv* jniEnv, jobject /*this*/)
+{
+    try {
+        DJINNI_FUNCTION_PROLOGUE0(jniEnv);
+        auto r = ::ledger::core::api::Networks::cosmos();
+        return ::djinni::release(::djinni_generated::CosmosLikeNetworkParameters::fromCpp(jniEnv, r));
     } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, 0 /* value doesn't matter */)
 }
 

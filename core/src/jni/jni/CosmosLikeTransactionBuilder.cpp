@@ -102,22 +102,22 @@ CJNIEXPORT void JNICALL Java_co_ledger_core_CosmosLikeTransactionBuilder_00024Cp
     } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, )
 }
 
-CJNIEXPORT jobject JNICALL Java_co_ledger_core_CosmosLikeTransactionBuilder_parseRawUnsignedTransaction(JNIEnv* jniEnv, jobject /*this*/, jobject j_currency, jbyteArray j_rawTransaction)
+CJNIEXPORT jobject JNICALL Java_co_ledger_core_CosmosLikeTransactionBuilder_parseRawUnsignedTransaction(JNIEnv* jniEnv, jobject /*this*/, jobject j_currency, jstring j_rawTransaction)
 {
     try {
         DJINNI_FUNCTION_PROLOGUE0(jniEnv);
         auto r = ::ledger::core::api::CosmosLikeTransactionBuilder::parseRawUnsignedTransaction(::djinni_generated::Currency::toCpp(jniEnv, j_currency),
-                                                                                                ::djinni::Binary::toCpp(jniEnv, j_rawTransaction));
+                                                                                                ::djinni::String::toCpp(jniEnv, j_rawTransaction));
         return ::djinni::release(::djinni_generated::CosmosLikeTransaction::fromCpp(jniEnv, r));
     } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, 0 /* value doesn't matter */)
 }
 
-CJNIEXPORT jobject JNICALL Java_co_ledger_core_CosmosLikeTransactionBuilder_parseRawSignedTransaction(JNIEnv* jniEnv, jobject /*this*/, jobject j_currency, jbyteArray j_rawTransaction)
+CJNIEXPORT jobject JNICALL Java_co_ledger_core_CosmosLikeTransactionBuilder_parseRawSignedTransaction(JNIEnv* jniEnv, jobject /*this*/, jobject j_currency, jstring j_rawTransaction)
 {
     try {
         DJINNI_FUNCTION_PROLOGUE0(jniEnv);
         auto r = ::ledger::core::api::CosmosLikeTransactionBuilder::parseRawSignedTransaction(::djinni_generated::Currency::toCpp(jniEnv, j_currency),
-                                                                                              ::djinni::Binary::toCpp(jniEnv, j_rawTransaction));
+                                                                                              ::djinni::String::toCpp(jniEnv, j_rawTransaction));
         return ::djinni::release(::djinni_generated::CosmosLikeTransaction::fromCpp(jniEnv, r));
     } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, 0 /* value doesn't matter */)
 }
