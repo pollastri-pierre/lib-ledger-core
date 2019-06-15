@@ -79,7 +79,7 @@ namespace ledger {
             std::shared_ptr<api::Amount> _value;
             std::shared_ptr<api::Amount> _gasLimit;
             std::shared_ptr<api::Amount> _gasPrice;
-            double _gasAdjustment;
+            double _gasAdjustment = 0;
             std::string _accountNumber;
             std::string _sequence;
             std::string _memo;

@@ -5,6 +5,13 @@ CosmosCurve = enum {
 	secp256k1;
 }
 
+CosmosBech32Type = enum {
+	PUBLIC_KEY;
+	PUBLIC_KEY_VAL;
+	ADDRESS;
+	ADDRESS_VAL;
+}
+
 CosmosLikeNetworkParameters = record {
 	# Name of the network.
 	Identifier: string;

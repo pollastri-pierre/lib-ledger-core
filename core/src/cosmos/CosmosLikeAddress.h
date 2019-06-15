@@ -37,6 +37,7 @@
 #include <api/CosmosLikeNetworkParameters.hpp>
 #include "../utils/optional.hpp"
 #include <wallet/common/AbstractAddress.h>
+#include <api/CosmosBech32Type.hpp>
 
 namespace ledger {
     namespace core {
@@ -45,6 +46,7 @@ namespace ledger {
             CosmosLikeAddress(const ledger::core::api::Currency &currency,
                               const std::vector<uint8_t> &hash160,
                               const std::vector<uint8_t> &version,
+                              api::CosmosBech32Type type,
                               const Option<std::string> &derivationPath = Option<std::string>());
 
             std::vector<uint8_t> getVersion() override;
@@ -71,6 +73,7 @@ namespace ledger {
             const std::vector<uint8_t> _hash160;
             const api::CosmosLikeNetworkParameters _params;
             const Option<std::string> _derivationPath;
+            api::CosmosBech32Type _type;
         };
     }
 }

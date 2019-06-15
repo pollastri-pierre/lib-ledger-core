@@ -34,7 +34,9 @@
 #include <wallet/cosmos/api_impl/CosmosLikeTransactionApi.h>
 #include <bytes/BytesReader.h>
 #include <wallet/currencies.hpp>
-
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+using namespace rapidjson;
 namespace ledger {
     namespace core {
         CosmosLikeTransactionBuilder::CosmosLikeTransactionBuilder(
@@ -125,8 +127,70 @@ namespace ledger {
                                                           const std::string &rawTransaction,
                                                           bool isSigned) {
             auto tx = std::make_shared<CosmosLikeTransactionApi>(currency);
+            Document document;
+            document.Parse(rawTransaction.c_str());
 
-            throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing Implementation");
+            using Object = GenericValue<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>>::Object;
+            auto getString = [] (const Object &object, const char *fieldName) {
+                if (!object[fieldName].IsString()) {
+                    throw Exception(api::ErrorCode::INVALID_ARGUMENT, fmt::format("Error while getting {} from rawTransaction", fieldName));
+                }
+                return object[fieldName].GetString();
+            };
+
+            auto getAmount = [=] (const Object &object) -> Amount {
+                auto denom = getString(object, "denom");
+                auto amount = getString(object, "amount");
+
+                auto unit = std::find_if(currency.units.begin(), currency.units.end(), [&] (const api::CurrencyUnit &unit) {
+                    return unit.name == denom;
+                });
+                if (unit == currency.units.end()) {
+                    throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Unknown unit while parsing transaction");
+                }
+                //TODO: Fix Amount::toUnit
+                return Amount(currency, 0, BigInt(amount) * BigInt(10).pow(static_cast<unsigned short>((*unit).numberOfDecimal)));
+            };
+
+            tx->setAccountNumber(getString(document.GetObject(), "account_number"));
+            tx->setMemo(getString(document.GetObject(), "memo"));
+            tx->setSequence(getString(document.GetObject(), "sequence"));
+
+            //Get fees
+            if (document["fee"].IsObject()) {
+                auto feeObject = document["fee"].GetObject();
+                //Gas Limit
+                auto gasLimit = std::make_shared<BigInt>(getString(feeObject, "gas"));
+                tx->setGasLimit(gasLimit);
+
+                //TODO: gas adjustment ?
+
+                //Gas Price
+                if (feeObject["amount"].IsArray() && feeObject["amount"].GetArray()[0].IsObject()) {
+                    auto amountObject = feeObject["amount"].GetArray()[0].GetObject();
+                    tx->setGasPrice(std::make_shared<BigInt>(BigInt(getAmount(amountObject).toString()) / *gasLimit));
+                }
+            }
+
+            // Msgs object
+            //TODO: handle multiple messages
+            if (document["msgs"].IsArray() && document["msgs"].GetArray()[0].IsObject()) {
+                auto msgs = document["msgs"].GetArray()[0].GetObject();
+                if (msgs["value"].IsObject()) {
+                    auto msgsValue = msgs["value"].GetObject();
+                    // Amount
+                    if (msgsValue["amount"].IsObject()) {
+                        tx->setValue(std::make_shared<BigInt>(getAmount(msgsValue["amount"].GetObject()).toString()));
+                    }
+
+                    // Sender
+                    tx->setSender(CosmosLikeAddress::fromBech32(getString(msgsValue, "from"), currency));
+
+                    // Receiver
+                    tx->setReceiver(CosmosLikeAddress::fromBech32(getString(msgsValue, "to"), currency));
+                }
+            }
+            return tx;
         }
     }
 }

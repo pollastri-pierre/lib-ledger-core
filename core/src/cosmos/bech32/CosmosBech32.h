@@ -32,39 +32,61 @@
 #ifndef LEDGER_CORE_COSMOSBECH32_H
 #define LEDGER_CORE_COSMOSBECH32_H
 
+#include <api/CosmosBech32Type.hpp>
 #include <bitcoin/bech32/Bech32Factory.h>
 #include <bitcoin/bech32/BTCBech32.h>
 #include <bitcoin/bech32/Bech32Parameters.h>
 
-using namespace ledger::core::api;
 using namespace ledger::core;
 
 namespace ledger {
     namespace core {
+
+        //Reference: https://github.com/cosmos/cosmos-sdk/blob/9a16e2675f392b083dd1074ff92ff1f9fbda750d/docs/spec/addresses/bech32.md
+        //TODO: support Cosmos Validator Consensus address & public key
+        const Bech32Parameters::Bech32Struct COSMOS = {
+                "cosmos",
+                "cosmos",
+                "1",
+                6,
+                {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
+                {0x01},
+                {0x01}
+        };
+
+        const Bech32Parameters::Bech32Struct COSMOS_VAL = {
+                "cosmos",
+                "cosmosvaloper",
+                "1",
+                6,
+                {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
+                {0x01},
+                {0x01}
+        };
+
+        const Bech32Parameters::Bech32Struct COSMOS_PUB = {
+                "cosmos",
+                "cosmospub",
+                "1",
+                6,
+                {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
+                {0x00},
+                {0x00}
+        };
+
+        const Bech32Parameters::Bech32Struct COSMOS_PUB_VAL = {
+                "cosmos",
+                "cosmosvaloperpub",
+                "1",
+                6,
+                {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
+                {0x00},
+                {0x00}
+        };
+
         class CosmosBech32 : public BTCBech32 {
         public:
-            CosmosBech32(bool isPubKey = false) : BTCBech32("btc", 0) {
-                static const Bech32Parameters::Bech32Struct COSMOS = {
-                        "cosmos",
-                        "cosmos",
-                        "1",
-                        6,
-                        {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
-                        {0x01},
-                        {0x01}
-                };
-
-                static const Bech32Parameters::Bech32Struct COSMOS_PUB = {
-                        "cosmos",
-                        "cosmospub",
-                        "1",
-                        6,
-                        {0x3b6a57b2ULL, 0x26508e6dULL, 0x1ea119faULL, 0x3d4233ddULL, 0x2a1462b3ULL},
-                        {0x00},
-                        {0x00}
-                };
-                _bech32Params = isPubKey ? COSMOS_PUB : COSMOS;
-            };
+            explicit CosmosBech32(api::CosmosBech32Type type);
         };
     }
 }
