@@ -36,6 +36,7 @@
 #include <wallet/ethereum/api_impl/EthereumLikeOperation.h>
 #include <wallet/ripple/api_impl/RippleLikeOperation.h>
 #include <wallet/tezos/api_impl/TezosLikeOperation.h>
+#include <wallet/cosmos/api_impl/CosmosLikeOperation.h>
 #include <api/WalletType.hpp>
 
 
@@ -94,6 +95,10 @@ namespace ledger {
             return _backend.walletType == api::WalletType::TEZOS;
         }
 
+        bool OperationApi::isInstanceOfCosmosLikeOperation() {
+            return _backend.walletType == api::WalletType::COSMOS;
+        }
+
         bool OperationApi::isComplete() {
             if (_backend.walletType == api::WalletType::BITCOIN) {
                 return _backend.bitcoinTransaction.nonEmpty();
@@ -103,6 +108,8 @@ namespace ledger {
                 return _backend.rippleTransaction.nonEmpty();
             } else if (_backend.walletType == api::WalletType::TEZOS) {
                 return _backend.tezosTransaction.nonEmpty();
+            } else if (_backend.walletType == api::WalletType::COSMOS) {
+                return _backend.cosmosTransaction.nonEmpty();
             }
             return false;
         }
@@ -159,6 +166,14 @@ namespace ledger {
             }
             return std::make_shared<TezosLikeOperation>(shared_from_this());
         }
+
+        std::shared_ptr<api::CosmosLikeOperation> OperationApi::asCosmosLikeOperation() {
+            if (getWalletType() != api::WalletType::COSMOS) {
+                throw make_exception(api::ErrorCode::BAD_CAST, "Operation is not of Cosmos type.");
+            }
+            return std::make_shared<CosmosLikeOperation>(shared_from_this());
+        }
+
 
         const std::shared_ptr<AbstractAccount> &OperationApi::getAccount() const {
             return _account;

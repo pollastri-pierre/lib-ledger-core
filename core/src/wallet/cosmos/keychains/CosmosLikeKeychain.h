@@ -50,6 +50,7 @@ namespace ledger {
     namespace core {
         class CosmosLikeKeychain : public CommonAccountBasedKeychain<CosmosLikeAddress, api::CosmosLikeExtendedPublicKey, api::CosmosLikeNetworkParameters> {
         public:
+            using Address = std::shared_ptr<CosmosLikeAddress>;
             CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
                                const api::Currency &params,
                                const std::shared_ptr<Preferences> &preferences);

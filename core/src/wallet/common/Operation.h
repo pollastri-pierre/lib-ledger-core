@@ -44,6 +44,7 @@
 #include <wallet/ethereum/explorers/EthereumLikeBlockchainExplorer.h>
 #include <wallet/ripple/explorers/RippleLikeBlockchainExplorer.h>
 #include <wallet/tezos/explorers/TezosLikeBlockchainExplorer.h>
+#include <wallet/cosmos/explorers/CosmosLikeBlockchainExplorer.h>
 #include <api/OperationType.hpp>
 #include <api/Operation.hpp>
 #include "Block.h"
@@ -68,6 +69,7 @@ namespace ledger {
             Option<EthereumLikeBlockchainExplorerTransaction> ethereumTransaction;
             Option<RippleLikeBlockchainExplorerTransaction> rippleTransaction;
             Option<TezosLikeBlockchainExplorerTransaction> tezosTransaction;
+            Option<CosmosLikeBlockchainExplorerTransaction> cosmosTransaction;
             Operation() {};
             void refreshUid();
         private:

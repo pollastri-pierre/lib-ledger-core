@@ -4,6 +4,7 @@ BlockchainExplorerEngines = interface +c {
     const RIPPLE_API: string = "RIPPLE_API";
     const RIPPLE_NODE: string = "RIPPLE_NODE";
     const TEZOS_NODE: string = "TEZOS_NODE";
+    const COSMOS_NODE: string = "COSMOS_NODE";
 }
 
 # Available API to use with observers.
@@ -11,6 +12,7 @@ BlockchainObserverEngines = interface +c {
     const LEDGER_API: string = "LEDGER_API";
     const RIPPLE_NODE: string = "RIPPLE_NODE";
     const TEZOS_NODE: string = "TEZOS_NODE";
+    const COSMOS_NODE: string = "COSMOS_NODE";
 }
 
 # Available keychains policies.

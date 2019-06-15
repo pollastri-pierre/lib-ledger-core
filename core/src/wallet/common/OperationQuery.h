@@ -71,6 +71,7 @@ namespace ledger {
             void inflateBitcoinLikeTransaction(soci::session& sql, const std::string &accountUid, OperationApi& operation);
             void inflateRippleLikeTransaction(soci::session& sql, OperationApi& operation);
             void inflateTezosLikeTransaction(soci::session& sql, OperationApi& operation);
+            void inflateCosmosLikeTransaction(soci::session& sql, OperationApi& operation);
             void inflateEthereumLikeTransaction(soci::session& sql, OperationApi& operation);
             void inflateMoneroLikeTransaction(soci::session& sql, OperationApi& operation);
 

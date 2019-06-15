@@ -50,7 +50,7 @@ namespace ledger {
                 throw make_exception(api::ErrorCode::INVALID_ARGUMENT, "No network parameters set for {}", networkName);
             }
 
-            const std::vector<api::CosmosLikeNetworkParameters> ALL_TEZOS
+            const std::vector<api::CosmosLikeNetworkParameters> ALL_COSMOS
                     ({
                              getCosmosLikeNetworkParameters("cosmos")
                      });

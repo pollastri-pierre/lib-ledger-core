@@ -13,4 +13,6 @@ std::string const BlockchainExplorerEngines::RIPPLE_NODE = {"RIPPLE_NODE"};
 
 std::string const BlockchainExplorerEngines::TEZOS_NODE = {"TEZOS_NODE"};
 
+std::string const BlockchainExplorerEngines::COSMOS_NODE = {"COSMOS_NODE"};
+
 } } }  // namespace ledger::core::api
