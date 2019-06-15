@@ -684,7 +684,7 @@ namespace ledger {
                    "amount_value VARCHAR(255) NOT NULL,"
                    "log TEXT,"
                    "success INTEGER"
-                   ");"
+                ");";
 
             sql << "CREATE TABLE cosmos_operations("
                     "uid VARCHAR(255) PRIMARY KEY NOT NULL REFERENCES operations(uid) ON DELETE CASCADE,"
