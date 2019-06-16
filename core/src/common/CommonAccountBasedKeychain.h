@@ -102,7 +102,7 @@ namespace ledger {
                 return _xpub;
             };
 
-            std::string getRestoreKey() const {
+            virtual std::string getRestoreKey() const {
                 return _xpub->toBase58();
             };
 
