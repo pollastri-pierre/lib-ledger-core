@@ -23,6 +23,7 @@ class AmountCallback;
 class AmountListCallback;
 class BitcoinLikeAccount;
 class BlockCallback;
+class CosmosLikeAccount;
 class ErrorCodeCallback;
 class EthereumLikeAccount;
 class EventBus;
@@ -140,6 +141,12 @@ public:
     virtual std::shared_ptr<TezosLikeAccount> asTezosLikeAccount() = 0;
 
     /**
+     * Turn the account into an Cosmos one, allowing operations to be performerd on the Cosmos
+     * network.
+     */
+    virtual std::shared_ptr<CosmosLikeAccount> asCosmosLikeAccount() = 0;
+
+    /**
      * Check if account is a Bitcoin one.
      * @return bool
      */
@@ -156,6 +163,12 @@ public:
      * @return bool
      */
     virtual bool isInstanceOfRippleLikeAccount() = 0;
+
+    /**
+     * Check if account is a Cosmos one.
+     * @return bool
+     */
+    virtual bool isInstanceOfCosmosLikeAccount() = 0;
 
     /**TODO */
     virtual void getFreshPublicAddresses(const std::shared_ptr<AddressListCallback> & callback) = 0;

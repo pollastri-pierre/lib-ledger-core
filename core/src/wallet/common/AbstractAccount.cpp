@@ -79,6 +79,10 @@ namespace ledger {
             return _type == api::WalletType::RIPPLE;
         }
 
+        bool AbstractAccount::isInstanceOfCosmosLikeAccount() {
+            return _type == api::WalletType::COSMOS;
+        }
+
         api::WalletType AbstractAccount::getWalletType() {
             return _type;
         }
@@ -101,6 +105,10 @@ namespace ledger {
 
         std::shared_ptr<api::TezosLikeAccount> AbstractAccount::asTezosLikeAccount() {
             return std::dynamic_pointer_cast<api::TezosLikeAccount>(shared_from_this());
+        }
+
+        std::shared_ptr<api::CosmosLikeAccount> AbstractAccount::asCosmosLikeAccount() {
+            return std::dynamic_pointer_cast<api::CosmosLikeAccount>(shared_from_this());
         }
 
         std::shared_ptr<spdlog::logger> AbstractAccount::logger() const {
