@@ -141,7 +141,25 @@ bool ledger::core::CurrenciesDatabaseHelper::insertCurrency(soci::session &sql,
                 break; // TODO INSERT MONERO NETWORK PARAMS
             }
             case api::WalletType::COSMOS: {
-                throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing Implementation");
+                auto &params = currency.cosmosLikeNetworkParameters.value();
+
+                std::stringstream additionalCIPs;
+                std::string separator(";");
+                strings::join(params.AdditionalCIPs, additionalCIPs, separator);
+                auto CIPs = additionalCIPs.str();
+                auto xpubVersion = hex::toString(params.XPUBVersion);
+                auto pubKeyPrefix = hex::toString(params.PubKeyPrefix);
+                auto addressPrefix = hex::toString(params.AddressPrefix);
+                sql << "INSERT INTO cosmos_currencies VALUES(:name, :identifier, :xpub, :pub_prefix, :address_prefix, :message_prefix, :chain_id, :additionalCIPs)",
+                        use(currency.name),
+                        use(params.Identifier),
+                        use(xpubVersion),
+                        use(pubKeyPrefix),
+                        use(addressPrefix),
+                        use(params.MessagePrefix),
+                        use(params.ChainId),
+                        use(CIPs);
+                break;
             }
 
             case api::WalletType::MONERO:break;
@@ -264,7 +282,23 @@ void ledger::core::CurrenciesDatabaseHelper::getAllCurrencies(soci::session &sql
                 break;
             }
             case api::WalletType::COSMOS: {
-                throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing implementation");
+                rowset<row> cosmos_rows = (sql.prepare << "SELECT cosmos_currencies.xpub_version, cosmos_currencies.pubkey_prefix, cosmos_currencies.address_prefix, "
+                        " cosmos_currencies.chain_id, cosmos_currencies.message_prefix, "
+                        " cosmos_currencies.identifier, cosmos_currencies.additional_CIPs"
+                        " FROM cosmos_currencies"
+                        " WHERE cosmos_currencies.name = :currency_name", use(currency.name));
+                for (auto &cosmos_row : cosmos_rows) {
+                    api::CosmosLikeNetworkParameters params;
+                    params.XPUBVersion = hex::toByteArray(cosmos_row.get<std::string>(0));
+                    params.PubKeyPrefix = hex::toByteArray(cosmos_row.get<std::string>(1));
+                    params.AddressPrefix = hex::toByteArray(cosmos_row.get<std::string>(2));
+                    params.ChainId = cosmos_row.get<std::string>(3);
+                    params.MessagePrefix = cosmos_row.get<std::string>(4);
+                    params.Identifier = cosmos_row.get<std::string>(5);
+                    params.AdditionalCIPs = strings::split(cosmos_row.get<std::string>(6), ",");
+                    currency.cosmosLikeNetworkParameters = params;
+                }
+                break;
             }
             case api::WalletType::MONERO:break;
         }
