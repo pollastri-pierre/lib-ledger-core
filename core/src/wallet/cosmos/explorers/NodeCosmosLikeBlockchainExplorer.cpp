@@ -36,6 +36,8 @@
 #include "api/rpcs_parsers.hpp"
 #include <collections/collections.hpp>
 
+// TODO COSMOS Compute gas price
+
 namespace ledger {
     namespace core {
         NodeCosmosLikeBlockchainExplorer::NodeCosmosLikeBlockchainExplorer(
@@ -88,6 +90,8 @@ namespace ledger {
             throw make_exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Not implemented");
         }
 
+        // TODO COSMOS Get curreny name from currency object
+
         FuturePtr<Block> NodeCosmosLikeBlockchainExplorer::getCurrentBlock() const {
             auto params = _parameters;
             return _http->GET(fmt::format("/blocks/latest")).json(true)
@@ -95,7 +99,7 @@ namespace ledger {
                             [=] (const HttpRequest::JsonResult& response) {
                         auto result = std::make_shared<Block>();
                         const auto& document = std::get<1>(response)->GetObject();
-                        rpcs_parsers::parseBlock(document, params.Identifier, *result);
+                        rpcs_parsers::parseBlock(document, "cosmos", *result);
                         return result;
                     });
         }
@@ -172,7 +176,7 @@ namespace ledger {
                     return _http->GET(fmt::format("/blocks/{}", head.block.getValue().height)).json(true).flatMap<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const HttpRequest::JsonResult& response) {
                         auto result = std::make_shared<Block>();
                         const auto& document = std::get<1>(response)->GetObject();
-                        rpcs_parsers::parseBlock(document, params.Identifier, *result);
+                        rpcs_parsers::parseBlock(document, "cosmos", *result);
                         CosmosLikeBlockchainExplorerTransaction newHead = head;
                         newHead.block = Option<Block>(*result);
                         return self->fillBlocks(tail).map<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const std::list<CosmosLikeBlockchainExplorerTransaction>& res) {
