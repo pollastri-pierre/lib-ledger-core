@@ -202,7 +202,7 @@ namespace ledger {
                 };
 
                 //Get operations related to an account
-                CosmosLikeAccountDatabaseHelper::queryOperations(sql, uid, operations, filter);
+                OperationDatabaseHelper::queryOperations(sql, uid, operations, filter);
 
                 auto lowerDate = startDate;
                 auto upperDate = DateUtils::incrementDate(startDate, precision);

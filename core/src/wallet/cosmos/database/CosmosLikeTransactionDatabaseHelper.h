@@ -55,6 +55,9 @@ namespace ledger {
             static std::string createCosmosTransactionUid(const std::string &accountUid,
                                                           const std::string &txHash);
 
+            static std::string createCosmosMessageUid(const std::string &txUid,
+                                                      uint64_t msgIndex);
+
             static std::string putTransaction(soci::session &sql,
                                               const std::string &accountUid,
                                               const CosmosLikeBlockchainExplorerTransaction &tx);

@@ -65,7 +65,7 @@ namespace ledger {
 
             // TODO COSMOS Hack!!! Normally we should have multiple messages here and not a sender and recipient
 
-            _value = std::make_shared<Amount>(_currency, 0, tx.messages.front().amount.value);
+            _value = std::make_shared<Amount>(_currency, 0, tx.messages.front().amount);
 
             _receiver = CosmosLikeAddress::fromBech32(tx.messages.front().recipient, _currency);
             _sender = CosmosLikeAddress::fromBech32(tx.messages.front().sender, _currency);

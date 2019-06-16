@@ -31,7 +31,7 @@
 
 #include "CosmosLikeAccountDatabaseHelper.h"
 #include <wallet/common/database/AccountDatabaseHelper.h>
-
+#include <utils/DateUtils.hpp>
 using namespace soci;
 
 namespace ledger {
@@ -55,48 +55,6 @@ namespace ledger {
                 return true;
             }
             return false;
-        }
-
-        std::size_t
-        CosmosLikeAccountDatabaseHelper::queryOperations(soci::session &sql,
-                                                         const std::string &accountUid,
-                                                         std::vector<Operation> &operations,
-                                                         std::function<bool(const std::string &address)> filter) {
-            throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing Implementation");
-
-            /*
-            std::string query = "";
-            rowset<row> rows = (sql.prepare << query, use(accountUid));
-
-            auto filterList = [&](const std::vector<std::string> &list) -> bool {
-                for (auto &elem : list) {
-                    if (filter(elem)) {
-                        return true;
-                    }
-                }
-                return false;
-            };
-
-            std::size_t c = 0;
-            for (auto &row : rows) {
-                auto type = api::from_string<api::OperationType>(row.get<std::string>(2));
-                auto senders = strings::split(row.get<std::string>(4), ",");
-                auto recipients = strings::split(row.get<std::string>(5), ",");
-                if ((type == api::OperationType::SEND && row.get_indicator(4) != i_null && filterList(senders)) ||
-                    (type == api::OperationType::RECEIVE && row.get_indicator(5) != i_null && filterList(recipients))) {
-                    operations.resize(operations.size() + 1);
-                    auto &operation = operations[operations.size() - 1];
-                    operation.amount = BigInt::fromHex(row.get<std::string>(0));
-                    operation.fees = BigInt::fromHex(row.get<std::string>(1));
-                    operation.type = type;
-                    operation.date = DateUtils::fromJSON(row.get<std::string>(3));
-                    operation.uid = row.get<std::string>(6);
-                    c += 1;
-                }
-            }
-
-            return c;
-            */
         }
 
     }
