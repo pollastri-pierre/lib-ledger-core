@@ -187,5 +187,28 @@ namespace ledger {
 
         }
 
+        Future<std::list<CosmosLikeBlockchainExplorerTransaction>>
+        NodeCosmosLikeBlockchainExplorer::getTransactions(const std::string &address,
+                                                          const std::list<std::string> &filters) {
+            auto self = shared_from_this();
+            auto context = getContext();
+            if (filters.empty()) {
+                return Future<std::list<CosmosLikeBlockchainExplorerTransaction>>::successful({});
+            } else {
+                return getTransactions(address, filters.front())
+                .flatMap<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const std::list<CosmosLikeBlockchainExplorerTransaction> mTxs) {
+                    auto tail = std::list<std::string>(++filters.begin(), filters.end());
+                    return self->getTransactions(address, tail).map<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const std::list<CosmosLikeBlockchainExplorerTransaction> txs) {
+                        return list::concat(mTxs, txs);
+                    });
+                });
+            }
+        }
+
+        Future<std::list<CosmosLikeBlockchainExplorerTransaction>>
+        NodeCosmosLikeBlockchainExplorer::getTransactions(const std::string &address) {
+            return getTransactions(address, std::list<std::string>({"recipient", "sender"}));
+        }
+
     }
 }

@@ -102,7 +102,8 @@ namespace ledger {
 
             virtual Future<CosmosLikeBlockchainExplorerAccount> getAccount(const std::string& address) = 0;
             virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::string& filter) = 0;
-
+            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::list<std::string>& filters) = 0;
+            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address) = 0;
         };
     }
 }

@@ -49,7 +49,7 @@ namespace ledger {
             _explorer->getCurrentBlock().flatMap<std::list<CosmosLikeBlockchainExplorerTransaction>>(getContext(), [=] (const std::shared_ptr<Block>& block) {
                 soci::session session(self->_database->getPool());
                 account->putBlock(session, *block);
-               return _explorer->getTransactions(account->getKeychain()->getAddress()->toBech32(), "recipient");
+               return _explorer->getTransactions(account->getKeychain()->getAddress()->toBech32());
             }).onComplete(getContext(), [=] (const Try<std::list<CosmosLikeBlockchainExplorerTransaction>> &txs) {
                 std::lock_guard<std::mutex> l(self->_lock);
                 if (txs.isFailure()) {
