@@ -234,3 +234,12 @@ BaseFixture::createCosmosLikeAccount(const std::shared_ptr<AbstractWallet>& wall
     i.index = index;
     return std::dynamic_pointer_cast<CosmosLikeAccount>(::wait(wallet->newAccountWithInfo(i)));
 }
+
+std::shared_ptr<CosmosLikeAccount>
+BaseFixture::createCosmosLikeAccount(const std::shared_ptr<AbstractWallet>& wallet,
+                                     int32_t index,
+                                     const api::ExtendedKeyAccountCreationInfo &info) {
+    auto i = info;
+    i.index = index;
+    return std::dynamic_pointer_cast<CosmosLikeAccount>(::wait(wallet->newAccountWithExtendedKeyInfo(i)));
+}

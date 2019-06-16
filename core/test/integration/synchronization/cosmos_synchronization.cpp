@@ -127,13 +127,18 @@ TEST_F(CosmosLikeWalletSynchronization, GeturrentBlockWithExplorer) {
 }
 
 TEST_F(CosmosLikeWalletSynchronization, MediumXpubSynchronization) {
-    auto pubKeyBech32 = "cosmospub1addwnpepqtztanmggwrgm92kafpagegck5dp8jc6frxkcpdzrspfafprrlx7gmvhdq6";
-    auto pubKey = CosmosLikeExtendedPublicKey::fromBech32(ledger::core::currencies::COSMOS, pubKeyBech32, Option<std::string>("44'/118'/0'"))->derivePublicKey("");
-    auto pubKeyStr = hex::toString(pubKey);
-    api::AccountCreationInfo COSMOS_KEYS_INFO(
+    auto pubKeyBech32 = "cosmospub1addwnpepqdtwj8njf68zedmfhzru54tg2475nnfjrrgtfd533prvs7sljk7nzxvtkpd";
+    //auto pubKey = CosmosLikeExtendedPublicKey::fromBech32(ledger::core::currencies::COSMOS, pubKeyBech32, Option<std::string>("44'/118'/0'"))->derivePublicKey("");
+    //auto pubKeyStr = hex::toString(pubKey);
+
+    auto pubKeyExt = ledger::core::CosmosLikeExtendedPublicKey::fromBech32(ledger::core::currencies::COSMOS, pubKeyBech32, Option<std::string>("44'/118'/0'"));
+    auto pubKey = pubKeyExt->derivePublicKey("");
+
+    EXPECT_EQ(pubKeyExt->derive("")->toBech32(), DEFAULT_ADDRESS);
+
+    api::ExtendedKeyAccountCreationInfo COSMOS_KEYS_INFO(
             0, {"main"}, {"44'/118'/0'"},
-            {pubKey},
-            {hex::toByteArray("b4f8427e7e19f284dfe7b99f107c55d00b3eae56df9569f0c4d56722742a5d71")} //TODO: fake value for now, replace with real value
+            {pubKeyBech32}
     );
     auto pool = newDefaultPool();
     {

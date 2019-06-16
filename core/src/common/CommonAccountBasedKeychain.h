@@ -71,7 +71,7 @@ namespace ledger {
             };
 
 
-            std::shared_ptr<Address> getAddress() const {
+            virtual std::shared_ptr<Address> getAddress() const {
                 if (_address.empty()) {
                     throw Exception(api::ErrorCode::INVALID_ARGUMENT,
                                     fmt::format("Address not derived yet from keychain"));
@@ -116,7 +116,7 @@ namespace ledger {
                                      "getOutputSizeAsSignedTxInput is not implemented yet");
             };
 
-            Option <std::vector<uint8_t>> getPublicKey(const std::string &address) const {
+            virtual Option <std::vector<uint8_t>> getPublicKey(const std::string &address) const {
                 auto path = getPreferences()->getString(fmt::format("address:{}", address), "");
                 if (path.empty()) {
                     Option<std::vector<uint8_t>>();
@@ -124,7 +124,7 @@ namespace ledger {
                 return Option<std::vector<uint8_t>>(_xpub->derivePublicKey(path));
             };
 
-            std::shared_ptr<Address> derive() {
+            virtual std::shared_ptr<Address> derive() {
 
                 if (_address.empty()) {
                     _localPath = getDerivationScheme()

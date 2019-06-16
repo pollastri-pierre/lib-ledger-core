@@ -79,20 +79,64 @@ namespace ledger {
                                                 const std::shared_ptr<const AbstractWallet> &wallet,
                                                 const CosmosLikeBlockchainExplorerTransaction &tx) {
             // TODO COSMOS Implement inflateOperation
+            out.accountUid = getAccountUid();
+            out.block = tx.block;
+            out.cosmosTransaction = Option<CosmosLikeBlockchainExplorerTransaction>(tx);
+            out.currencyName = getWallet()->getCurrency().name;
+            out.walletType = getWalletType();
+            out.walletUid = wallet->getWalletUid();
+            out.date = tx.timestamp;
+            if (out.block.nonEmpty())
+                out.block.getValue().currencyName = wallet->getCurrency().name;
+            out.cosmosTransaction.getValue().block = out.block;
+            out.trust = std::make_shared<TrustIndicator>();
         }
 
         int CosmosLikeAccount::putTransaction(soci::session &sql,
-                                             const CosmosLikeBlockchainExplorerTransaction &transaction) {
+                                             const CosmosLikeBlockchainExplorerTransaction &tx) {
             auto wallet = getWallet();
             if (wallet == nullptr) {
                 throw Exception(api::ErrorCode::RUNTIME_ERROR, "Wallet reference is dead.");
             }
 
-             if (transaction.block.nonEmpty()) {
-                 putBlock(sql, transaction.block.getValue());
+             if (tx.block.nonEmpty()) {
+                 putBlock(sql, tx.block.getValue());
              }
 
             int result = FLAG_TRANSACTION_IGNORED;
+            auto address = getKeychain()->getAddress()->toBech32();
+             CosmosLikeTransactionDatabaseHelper::putTransaction(sql, getAccountUid(), tx);
+
+             Operation operation;
+             inflateOperation(operation, getWallet(), tx);
+
+             for (const auto& msg : tx.messages) {
+                 operation.senders = {msg.sender};
+                 operation.recipients = {msg.recipient};
+                 operation.amount = msg.amount;
+                 operation.fees = Option<BigInt>(msg.fees);
+
+                 if (msg.sender == address) {
+                     // Do the send operation
+                     operation.type = api::OperationType::SEND;
+                     operation.refreshUid();
+                     if (OperationDatabaseHelper::putOperation(sql, operation)) {
+                         emitNewOperationEvent(operation);
+                     }
+                     result = static_cast<int>(operation.type);
+                 }
+
+                 if (msg.recipient == address) {
+                     // Do the receive operation
+                     operation.type = api::OperationType::RECEIVE;
+                     operation.refreshUid();
+                     if (OperationDatabaseHelper::putOperation(sql, operation)) {
+                         emitNewOperationEvent(operation);
+                     }
+                     result = static_cast<int>(operation.type);
+                 }
+
+             }
 
             // Operation operation;
             // inflateOperation(operation, wallet, transaction);

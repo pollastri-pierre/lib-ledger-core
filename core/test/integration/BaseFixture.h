@@ -131,6 +131,9 @@ public:
     std::shared_ptr<CosmosLikeAccount> createCosmosLikeAccount(const std::shared_ptr<AbstractWallet>& wallet,
                                                                int32_t index,
                                                                const api::AccountCreationInfo &info);
+    std::shared_ptr<CosmosLikeAccount> createCosmosLikeAccount(const std::shared_ptr<AbstractWallet>& wallet,
+                                                               int32_t index,
+                                                               const api::ExtendedKeyAccountCreationInfo &info);
 
     std::shared_ptr<QtThreadDispatcher> dispatcher;
     std::shared_ptr<NativePathResolver> resolver;

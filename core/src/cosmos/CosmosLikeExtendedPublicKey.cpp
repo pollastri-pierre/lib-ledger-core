@@ -93,7 +93,7 @@ namespace ledger {
                                              api::CosmosCurve curve,
                                              api::CosmosBech32Type type) {
             auto& params = currency.cosmosLikeNetworkParameters.value();
-            DeterministicPublicKey k = CosmosExtendedPublicKey::fromRaw(currency, params, parentPublicKey, publicKey, chainCode, path);
+            DeterministicPublicKey k = CosmosExtendedPublicKey::fromRaw(currency, params, parentPublicKey, publicKey, {}, path);
             DerivationPath p(path);
             return std::make_shared<CosmosLikeExtendedPublicKey>(currency, k, curve, type, p);
         }
