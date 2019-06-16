@@ -118,8 +118,8 @@ TEST_F(CosmosLikeWalletSynchronization, GeturrentBlockWithExplorer) {
             std::make_shared<DynamicObject>()
     );
 
-    auto account = ::wait(explorer->getAccount(address));
-    ASSERT_EQ(account.address, address);
-    ASSERT_EQ(account.accountNumber, "5859");
-
+    auto block = ::wait(explorer->getCurrentBlock());
+    EXPECT_TRUE(block->hash.size() > 0);
+    EXPECT_TRUE(block->height > 0);
 }
+
