@@ -78,6 +78,11 @@ namespace ledger {
                 return std::dynamic_pointer_cast<CosmosLikeAddress>(_xpub->derive(""));
             }
 
+            std::string getRestoreKey() const override {
+                return _xpub->toBech32();
+            };
+
+
             const api::CosmosLikeNetworkParameters &getNetworkParameters() const override;
         };
     }
