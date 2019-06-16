@@ -62,6 +62,8 @@ namespace ledger {
                              const std::shared_ptr<CosmosLikeAccountSynchronizer> &synchronizer,
                              const std::shared_ptr<CosmosLikeKeychain> &keychain);
 
+                std::shared_ptr<api::CosmosLikeAccount> asCosmosLikeAccount() override;
+
             void inflateOperation(Operation &out,
                                   const std::shared_ptr<const AbstractWallet> &wallet,
                                   const CosmosLikeBlockchainExplorerTransaction &tx);

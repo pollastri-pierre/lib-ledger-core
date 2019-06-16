@@ -71,6 +71,10 @@ namespace ledger {
             _accountAddress = keychain->getAddress()->toString();
         }
 
+        std::shared_ptr<api::CosmosLikeAccount> CosmosLikeAccount::asCosmosLikeAccount() {
+            return std::dynamic_pointer_cast<CosmosLikeAccount>(shared_from_this());
+        }
+        
         void CosmosLikeAccount::inflateOperation(Operation &out,
                                                 const std::shared_ptr<const AbstractWallet> &wallet,
                                                 const CosmosLikeBlockchainExplorerTransaction &tx) {

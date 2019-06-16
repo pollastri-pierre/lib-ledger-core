@@ -337,6 +337,9 @@ Account = interface +c {
     # Turn the account into an Ethereum one, allowing operations to be performerd on the Ethereum
     # network.
     asEthereumLikeAccount() : EthereumLikeAccount;
+    # Turn the account into an Cosmos one, allowing operations to be performerd on the Cosmos
+    # network.
+    asCosmosLikeAccount() : CosmosLikeAccount;
     # Check if account is a Bitcoin one.
     # @return bool
     isInstanceOfBitcoinLikeAccount(): bool;
@@ -346,6 +349,9 @@ Account = interface +c {
     # Check if account is a Ripple one.
     # @return bool
     isInstanceOfRippleLikeAccount(): bool;
+    # Check if account is a Cosmos one.
+    # @return bool
+    isInstanceOfCosmosLikeAccount(): bool;
     #TODO
     getFreshPublicAddresses(callback: ListCallback<Address>);
     # Get type of wallet to which account belongs.
