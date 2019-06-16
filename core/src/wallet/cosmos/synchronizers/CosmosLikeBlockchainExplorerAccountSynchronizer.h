@@ -69,6 +69,7 @@ namespace ledger {
         private:
             std::shared_ptr<CosmosLikeBlockchainExplorer> _explorer;
             std::shared_ptr<ProgressNotifier<Unit>> _notifier;
+            std::shared_ptr<DatabaseSessionPool> _database;
             std::mutex _lock;
         };
     }

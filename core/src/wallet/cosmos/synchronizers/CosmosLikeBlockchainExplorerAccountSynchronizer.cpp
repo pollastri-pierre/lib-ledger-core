@@ -39,21 +39,32 @@ namespace ledger {
                 const std::shared_ptr<CosmosLikeBlockchainExplorer> &explorer) :
                 DedicatedContext(pool->getDispatcher()->getThreadPoolExecutionContext("synchronizers")) {
             _explorer = explorer;
+            _database = pool->getDatabaseSessionPool();
         }
 
         std::shared_ptr<ProgressNotifier<Unit>>
         CosmosLikeBlockchainExplorerAccountSynchronizer::synchronize(const std::shared_ptr<CosmosLikeAccount> &account) {
             auto self = shared_from_this();
             _notifier = std::make_shared<ProgressNotifier<Unit>>();
-            _explorer->getTransactions(account->getKeychain()->getAddress()->toBech32(), "recipient").onComplete(getContext(), [self] (const Try<std::list<CosmosLikeBlockchainExplorerTransaction>> &txs) {
+            _explorer->getCurrentBlock().flatMap<std::list<CosmosLikeBlockchainExplorerTransaction>>(getContext(), [=] (const std::shared_ptr<Block>& block) {
+                soci::session session(self->_database->getPool());
+                account->putBlock(session, *block);
+               return _explorer->getTransactions(account->getKeychain()->getAddress()->toBech32(), "recipient");
+            }).onComplete(getContext(), [=] (const Try<std::list<CosmosLikeBlockchainExplorerTransaction>> &txs) {
                 std::lock_guard<std::mutex> l(self->_lock);
                 if (txs.isFailure()) {
                     self->_notifier->failure(txs.getFailure());
                 } else {
+                    for (const auto& tx : txs.getValue()) {
+                        soci::session session(self->_database->getPool());
+                        // TODO COSMOS Use a db transaction here
+                        account->putTransaction(session, tx);
+                    }
                     self->_notifier->success(unit);
                 }
                 self->_notifier = nullptr;
             });
+
             return _notifier;
         }
 

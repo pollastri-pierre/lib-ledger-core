@@ -66,6 +66,18 @@ namespace ledger {
                                const std::string &accountAddress,
                                const std::shared_ptr<Preferences> &preferences);
 
+            std::shared_ptr<CosmosLikeAddress> derive() override {
+                return std::dynamic_pointer_cast<CosmosLikeAddress>(_xpub->derive(""));
+            };
+
+            Option <std::vector<uint8_t>> getPublicKey(const std::string &address) const override {
+                return Option<std::vector<uint8_t>>(_xpub->derivePublicKey(""));
+            }
+
+            virtual std::shared_ptr<CosmosLikeAddress> getAddress() const override {
+                return std::dynamic_pointer_cast<CosmosLikeAddress>(_xpub->derive(""));
+            }
+
             const api::CosmosLikeNetworkParameters &getNetworkParameters() const override;
         };
     }

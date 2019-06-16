@@ -47,9 +47,9 @@ namespace ledger {
             _configuration = configuration;
             _currency = params;
             _fullScheme = DerivationScheme(configuration->getString(api::Configuration::KEYCHAIN_DERIVATION_SCHEME)
-                                                   .value_or("44'/<coin_type>'/<account>'/<node>/<address>"));
+                                                   .value_or("44'/<coin_type>'/<account>'"));
             _scheme = DerivationScheme(configuration->getString(api::Configuration::KEYCHAIN_DERIVATION_SCHEME)
-                                               .value_or("44'/<coin_type>'/<account>'/<node>/<address>"))
+                                               .value_or("44'/<coin_type>'/<account>'"))
                     .getSchemeFrom(DerivationSchemeLevel::ACCOUNT_INDEX).shift();
         }
 

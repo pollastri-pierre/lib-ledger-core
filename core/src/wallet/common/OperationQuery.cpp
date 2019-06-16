@@ -221,7 +221,12 @@ namespace ledger {
         void OperationQuery::inflateCosmosLikeTransaction(soci::session &sql, OperationApi &operation) {
             CosmosLikeBlockchainExplorerTransaction tx;
             operation.getBackend().cosmosTransaction = Option<CosmosLikeBlockchainExplorerTransaction>(tx);
-            throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing implementation");
+            std::string transactionHash;
+            sql << "SELECT ct.hash FROM cosmos_transactions AS ct "
+                   "JOIN cosmos_messages AS cm ON ct.transaction_uid = cm.transaction_uid "
+                   "JOIN cosmos_operations AS co ON co.message_uid = cm.uid "
+                   "WHERE co.uid = :uid", soci::use(operation.getBackend().uid), soci::into(transactionHash);
+            CosmosLikeTransactionDatabaseHelper::getTransactionByHash(sql, transactionHash, operation.getBackend().cosmosTransaction.getValue());
         }
 
         void OperationQuery::inflateEthereumLikeTransaction(soci::session &sql, OperationApi &operation) {

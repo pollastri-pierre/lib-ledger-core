@@ -161,14 +161,21 @@ namespace ledger {
                 std::for_each(tx.messages.begin(), tx.messages.end(), [&](const CosmosLikeBlockchainExplorerMessage &msg) {
                     auto amount = msg.amount.toString();
                     auto fees = msg.fees.toString();
+
+                    // TODO COSMOS Right hardcoded to use onely one msg log
                     auto uid = createCosmosMessageUid(cosmosTxUid, msgIndex);
-                    sql << "INSERT INTO cosmos_messages VALUES (:tx_uid, :message_type, :from_address, :to_address, :amount_value, :fees, :log, :success, :msg_index)",
+                    auto isSuccess = tx.logs.front().success ? 1 : 0;
+                    auto logMessage = tx.logs.front().log;
+                    sql << "INSERT INTO cosmos_messages VALUES (:uid, :tx_uid, :message_type, :from_address, :to_address, :amount_value, :fees, :log, :success, :msg_index)",
                             use(uid),
+                            use(cosmosTxUid),
                             use(msg.type),
                             use(msg.sender),
                             use(msg.recipient),
                             use(amount),
                             use(fees),
+                            use(logMessage),
+                            use(isSuccess),
                             use(msgIndex);
                     ++msgIndex;
                 });

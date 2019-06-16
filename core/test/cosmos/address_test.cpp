@@ -53,8 +53,8 @@ static api::Currency currency = currencies::COSMOS;
 TEST(CosmosAddress, AddressFromPubKey) {
     {
         // Results returned by device
-        std::string prefixedPubKey = "cosmospub1addwnpepqtztanmggwrgm92kafpagegck5dp8jc6frxkcpdzrspfafprrlx7gmvhdq6";
-        std::string bech32Addr = "cosmos1x9fzdaykfcc3k4hvflzu4rc6683a7cgkqfhe0s";
+        std::string prefixedPubKey = "cosmospub1addwnpepqdtwj8njf68zedmfhzru54tg2475nnfjrrgtfd533prvs7sljk7nzxvtkpd";
+        std::string bech32Addr = "cosmos16xkkyj97z7r83sx45xwk9uwq0mj0zszlf6c6mq";
 
         // From bech32 pubKey to pubKeyHash160
         auto pkBech32 = std::make_shared<CosmosBech32>(true);
@@ -146,8 +146,8 @@ TEST(CosmosAddress, AddressFromPubKeys) {
 
 
 TEST(CosmosAddress, CosmosAddressFromBech32PubKey) {
-    auto expectedResult = "cosmos1x9fzdaykfcc3k4hvflzu4rc6683a7cgkqfhe0s";
-    auto pubKey = "cosmospub1addwnpepqtztanmggwrgm92kafpagegck5dp8jc6frxkcpdzrspfafprrlx7gmvhdq6";
+    auto expectedResult = "cosmos16xkkyj97z7r83sx45xwk9uwq0mj0zszlf6c6mq";
+    auto pubKey = "cosmospub1addwnpepqdtwj8njf68zedmfhzru54tg2475nnfjrrgtfd533prvs7sljk7nzxvtkpd";
     auto pubKeyExt = ledger::core::CosmosLikeExtendedPublicKey::fromBech32(currency, pubKey, Option<std::string>("44'/118'/0'"));
     EXPECT_EQ(pubKeyExt->derive("")->toBech32(), expectedResult);
 }

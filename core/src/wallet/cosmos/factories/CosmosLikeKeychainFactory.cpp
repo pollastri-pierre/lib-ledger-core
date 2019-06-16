@@ -47,11 +47,10 @@ namespace ledger {
 
                 auto xpub = make_try<std::shared_ptr<CosmosLikeExtendedPublicKey>>(
                         [&]() -> std::shared_ptr<CosmosLikeExtendedPublicKey> {
-                            return CosmosLikeExtendedPublicKey::fromBase58(
+                            return CosmosLikeExtendedPublicKey::fromBech32(
                                     currency,
                                     info.extendedKeys[info.extendedKeys.size() - 1],
-                                    Option<std::string>(path.toString()),
-                                    api::CosmosBech32Type::PUBLIC_KEY //TODO: handle all type of public keys
+                                    Option<std::string>(path.toString()) //TODO COSMOS Whatever
                             );
                         });
 
