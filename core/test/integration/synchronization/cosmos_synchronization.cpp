@@ -92,9 +92,9 @@ TEST_F(CosmosLikeWalletSynchronization, GetTransactionsWithExplorer) {
             ASSERT_EQ(tx.messages.size(), 1);
             ASSERT_EQ(tx.messages.front().recipient, "cosmos16xkkyj97z7r83sx45xwk9uwq0mj0zszlf6c6mq");
             ASSERT_EQ(tx.messages.front().sender, "cosmos1pvnsselytw4zp9tym6a8m3ym88snezmezgx2rn");
-            ASSERT_EQ(tx.messages.front().amount.toInt(), 1123000);
+            ASSERT_EQ(tx.messages.front().amount.toInt(), 1123000000);
             ASSERT_EQ(tx.messages.front().type, "cosmos-sdk/MsgSend");
-            ASSERT_EQ(tx.messages.front().fees.toInt(), 969);
+            ASSERT_EQ(tx.messages.front().fees.toInt(), 969000);
             ASSERT_EQ(tx.gasLimit.toInt(), 38731);
             ASSERT_EQ(tx.gasUsed->toInt(), 29354);
             ASSERT_EQ(tx.memo, "(Sent via Lunie)");
