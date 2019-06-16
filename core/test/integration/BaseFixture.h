@@ -53,6 +53,7 @@
 #include <wallet/ethereum/EthereumLikeAccount.h>
 #include <wallet/ripple/RippleLikeAccount.h>
 #include <wallet/tezos/TezosLikeAccount.h>
+#include <wallet/cosmos/CosmosLikeAccount.h>
 #include <api/BitcoinLikeOperation.hpp>
 #include <api/BitcoinLikeTransaction.hpp>
 #include <api/BitcoinLikeInput.hpp>
@@ -126,6 +127,10 @@ public:
     std::shared_ptr<TezosLikeAccount> createTezosLikeAccount(const std::shared_ptr<AbstractWallet>& wallet,
                                                              int32_t index,
                                                              const api::AccountCreationInfo &info);
+
+    std::shared_ptr<CosmosLikeAccount> createCosmosLikeAccount(const std::shared_ptr<AbstractWallet>& wallet,
+                                                               int32_t index,
+                                                               const api::AccountCreationInfo &info);
 
     std::shared_ptr<QtThreadDispatcher> dispatcher;
     std::shared_ptr<NativePathResolver> resolver;

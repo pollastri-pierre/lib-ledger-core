@@ -50,8 +50,8 @@ namespace ledger {
                             return CosmosLikeExtendedPublicKey::fromBase58(
                                     currency,
                                     info.extendedKeys[info.extendedKeys.size() - 1],
-
-                                    Option<std::string>(path.toString())
+                                    Option<std::string>(path.toString()),
+                                    api::CosmosBech32Type::PUBLIC_KEY //TODO: handle all type of public keys
                             );
                         });
 

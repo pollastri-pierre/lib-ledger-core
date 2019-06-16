@@ -38,7 +38,9 @@
 #include <wallet/cosmos/cosmosNetworks.h>
 #include <collections/DynamicObject.hpp>
 #include <iostream>
-
+#include <cosmos/CosmosLikeExtendedPublicKey.h>
+#include <wallet/currencies.hpp>
+#include <wallet/cosmos/transaction_builders/CosmosLikeTransactionBuilder.h>
 using namespace std;
 using namespace ledger::core;
 
@@ -123,3 +125,65 @@ TEST_F(CosmosLikeWalletSynchronization, GeturrentBlockWithExplorer) {
     EXPECT_TRUE(block->height > 0);
 }
 
+TEST_F(CosmosLikeWalletSynchronization, MediumXpubSynchronization) {
+    auto pubKeyBech32 = "cosmospub1addwnpepqtztanmggwrgm92kafpagegck5dp8jc6frxkcpdzrspfafprrlx7gmvhdq6";
+    auto pubKey = CosmosLikeExtendedPublicKey::fromBech32(ledger::core::currencies::COSMOS, pubKeyBech32, Option<std::string>("44'/118'/0'"))->derivePublicKey("");
+    auto pubKeyStr = hex::toString(pubKey);
+    api::AccountCreationInfo COSMOS_KEYS_INFO(
+            0, {"main"}, {"44'/118'/0'"},
+            {pubKey},
+            {hex::toByteArray("b4f8427e7e19f284dfe7b99f107c55d00b3eae56df9569f0c4d56722742a5d71")} //TODO: fake value for now, replace with real value
+    );
+    auto pool = newDefaultPool();
+    {
+        auto configuration = DynamicObject::newInstance();
+        configuration->putString(api::Configuration::KEYCHAIN_DERIVATION_SCHEME,
+                                 "44'/<coin_type>'/<account>'/<node>/<address>");
+        auto wallet = wait(pool->createWallet("e847815f-488a-4301-b67c-378a5e9c8a61", "cosmos", configuration));
+        std::set<std::string> emittedOperations;
+        {
+            auto nextIndex = wait(wallet->getNextAccountIndex());
+            EXPECT_EQ(nextIndex, 0);
+
+            auto account = createCosmosLikeAccount(wallet, nextIndex, COSMOS_KEYS_INFO);
+
+            auto receiver = make_receiver([&](const std::shared_ptr<api::Event> &event) {
+                if (event->getCode() == api::EventCode::NEW_OPERATION) {
+                    auto uid = event->getPayload()->getString(
+                            api::Account::EV_NEW_OP_UID).value();
+                    EXPECT_EQ(emittedOperations.find(uid), emittedOperations.end());
+                }
+            });
+
+            pool->getEventBus()->subscribe(dispatcher->getMainExecutionContext(), receiver);
+
+            receiver.reset();
+            receiver = make_receiver([=](const std::shared_ptr<api::Event> &event) {
+                fmt::print("Received event {}\n", api::to_string(event->getCode()));
+                if (event->getCode() == api::EventCode::SYNCHRONIZATION_STARTED)
+                    return;
+                EXPECT_NE(event->getCode(), api::EventCode::SYNCHRONIZATION_FAILED);
+                EXPECT_EQ(event->getCode(),
+                          api::EventCode::SYNCHRONIZATION_SUCCEED);
+
+                auto balance = wait(account->getBalance());
+                std::cout << "Balance: " << balance->toString() << std::endl;
+                auto txBuilder = std::dynamic_pointer_cast<CosmosLikeTransactionBuilder>(account->buildTransaction());
+                dispatcher->stop();
+            });
+
+            auto restoreKey = account->getRestoreKey();
+            account->synchronize()->subscribe(dispatcher->getMainExecutionContext(), receiver);
+
+            dispatcher->waitUntilStopped();
+
+            auto ops = wait(
+                    std::dynamic_pointer_cast<OperationQuery>(account->queryOperations()->complete())->execute());
+            std::cout << "Ops: " << ops.size() << std::endl;
+
+            auto block = wait(account->getLastBlock());
+            auto blockHash = block.blockHash;
+
+        }
+    }
+}

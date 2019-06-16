@@ -83,11 +83,13 @@ namespace ledger {
                 account.sequence = node["sequence"].GetString();
                 account.address = node["address"].GetString();
                 account.type = accountNode["type"].GetString();
-                const auto& balances = node["coins"].GetArray();
-                for (const auto& balance : balances) {
-                    BigInt value;
-                    parseAmountField(balance.GetObject(), value);
-                    account.balances.emplace_back(value);
+                if (node["coins"].IsArray()) {
+                    const auto& balances = node["coins"].GetArray();
+                    for (const auto& balance : balances) {
+                        BigInt value;
+                        parseAmountField(balance.GetObject(), value);
+                        account.balances.emplace_back(value);
+                    }
                 }
             }
 
