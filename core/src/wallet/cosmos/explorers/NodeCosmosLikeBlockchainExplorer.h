@@ -141,7 +141,9 @@ namespace ledger {
 
             virtual Future<CosmosLikeBlockchainExplorerAccount> getAccount(const std::string& address) override;
             virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::string& filter) override;
-            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::list<std::string>& filters);
+            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::list<std::string>& filters) override;
+            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address) override;
+
         private:
             Future<std::list<CosmosLikeBlockchainExplorerTransaction>> fillBlocks(const std::list<CosmosLikeBlockchainExplorerTransaction>& txs);
             api::CosmosLikeNetworkParameters _parameters;
