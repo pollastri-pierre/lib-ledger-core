@@ -31,7 +31,7 @@
 #include "OperationQuery.h"
 #include <api/OperationListCallback.hpp>
 #include "Operation.h"
-#include "../../../../cmake-build-debug/include/ledger/core/api/ErrorCode.hpp"
+#include <api/ErrorCode.hpp>
 #include <database/soci-date.h>
 #include <database/soci-option.h>
 #include <database/soci-number.h>
