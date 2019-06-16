@@ -34,6 +34,7 @@
 #include <api/Configuration.hpp>
 #include <rapidjson/document.h>
 #include "api/rpcs_parsers.hpp"
+#include <collections/collections.hpp>
 
 namespace ledger {
     namespace core {
@@ -135,6 +136,7 @@ namespace ledger {
 
         Future<std::list<CosmosLikeBlockchainExplorerTransaction>> NodeCosmosLikeBlockchainExplorer::
         getTransactions(const std::string &address, const std::string& filter) {
+            auto self = shared_from_this();
             return _http->GET(fmt::format("/txs?{}={}", filter, address)).json(true)
             .map<std::list<CosmosLikeBlockchainExplorerTransaction>>(getContext(),
                     [] (const HttpRequest::JsonResult& response) {
@@ -148,7 +150,37 @@ namespace ledger {
                 }
 
                 return result;
+            }).flatMap<std::list<CosmosLikeBlockchainExplorerTransaction>>(getContext(), [=] (const std::list<CosmosLikeBlockchainExplorerTransaction>& txs) {
+                return self->fillBlocks(txs);
             });
+        }
+
+        Future<std::list<CosmosLikeBlockchainExplorerTransaction>> NodeCosmosLikeBlockchainExplorer::fillBlocks(const std::list<CosmosLikeBlockchainExplorerTransaction>& txs) {
+            auto self = shared_from_this();
+            auto context = getContext();
+            auto params = self->_parameters;
+            if (txs.empty())
+                return Future<std::list<CosmosLikeBlockchainExplorerTransaction>>::successful({});
+            else {
+                auto head = txs.front();
+                std::list<CosmosLikeBlockchainExplorerTransaction> tail(++txs.begin(), txs.end());
+                if (head.block.isEmpty()) {
+                    return self->fillBlocks(tail).map<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const std::list<CosmosLikeBlockchainExplorerTransaction>& res) {
+                       return list::concat({head}, res);
+                    });
+                } else
+                    return _http->GET(fmt::format("/blocks/{}", head.block.getValue().height)).json(true).flatMap<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const HttpRequest::JsonResult& response) {
+                        auto result = std::make_shared<Block>();
+                        const auto& document = std::get<1>(response)->GetObject();
+                        rpcs_parsers::parseBlock(document, params.Identifier, *result);
+                        CosmosLikeBlockchainExplorerTransaction newHead = head;
+                        newHead.block = Option<Block>(*result);
+                        return self->fillBlocks(tail).map<std::list<CosmosLikeBlockchainExplorerTransaction>>(context, [=] (const std::list<CosmosLikeBlockchainExplorerTransaction>& res) {
+                            return list::concat({newHead}, res);
+                        });
+                    });
+            }
+
         }
 
     }

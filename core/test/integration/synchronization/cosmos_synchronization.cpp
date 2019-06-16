@@ -88,6 +88,7 @@ TEST_F(CosmosLikeWalletSynchronization, GetTransactionsWithExplorer) {
         if (tx.hash == "A57D7FD9615739D0F07F34FCFD352441B939C094F621E49C562A664A02650087") {
             foundTx = true;
             ASSERT_EQ(tx.block.getValue().height, 174362);
+            ASSERT_EQ(tx.block.getValue().hash, "B69ACA3986E7FA52671FA5FBB2B81126E6E35C6D4A1026D24C31AA24C7D0781D");
             ASSERT_EQ(tx.logs.size(), 1);
             ASSERT_EQ(tx.logs.front().log, "");
             ASSERT_EQ(tx.logs.front().success, true);
