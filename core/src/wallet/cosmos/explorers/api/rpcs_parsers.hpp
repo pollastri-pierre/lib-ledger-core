@@ -36,10 +36,45 @@
 #include <rapidjson/document.h>
 #include <utils/Option.hpp>
 #include <wallet/currencies.hpp>
+#include <utils/DateUtils.hpp>
 
 namespace ledger {
     namespace core {
         namespace rpcs_parsers {
+
+            template <class T>
+            std::string getStringFromVariableKeys(const T& node, const std::list<std::string>& keys) {
+                for (const auto& key : keys) {
+                    if (node.HasMember(key.c_str())) {
+                        return node[key.c_str()].GetString();
+                    }
+                }
+                return "";
+            }
+
+            template <class T>
+            void parseAmountField(const T& node, BigInt& out) {
+                auto amount = BigInt::fromString(node["amount"].GetString());
+                auto denom = node["denom"].GetString();
+
+                auto unit = std::find_if(currencies::COSMOS.units.begin(), currencies::COSMOS.units.end(), [&] (const api::CurrencyUnit &unit) {
+                    return unit.name == denom;
+                });
+                if (unit == currencies::COSMOS.units.end()) {
+                    throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Unknown unit while parsing transaction");
+                }
+                //TODO: Fix Amount::toUnit and use right unit
+                out = BigInt(amount) * BigInt(10).pow(static_cast<unsigned short>((*unit).numberOfDecimal));
+            }
+
+            template <class T>
+            void parseBlock(const T& node, const std::string& currencyName, Block& out) {
+                out.currencyName = currencyName;
+                out.hash = node["block_meta"].GetObject()["block_id"].GetObject()["hash"].GetString();
+                out.height = BigInt::fromString(node["block_meta"].GetObject()["header"].GetObject()["height"].GetString()).toUint64();
+                out.time = DateUtils::fromJSON(node["block_meta"].GetObject()["header"].GetObject()["time"].GetString());
+            }
+
             template <class T>
             void parseAccount(const T& accountNode,
                     CosmosLikeBlockchainExplorerAccount& account) {
@@ -50,17 +85,9 @@ namespace ledger {
                 account.type = accountNode["type"].GetString();
                 const auto& balances = node["coins"].GetArray();
                 for (const auto& balance : balances) {
-                    auto amount = BigInt::fromString(balance.GetObject()["amount"].GetString());
-                    auto denom = balance.GetObject()["denom"].GetString();
-
-                    auto unit = std::find_if(currencies::COSMOS.units.begin(), currencies::COSMOS.units.end(), [&] (const api::CurrencyUnit &unit) {
-                        return unit.name == denom;
-                    });
-                    if (unit == currencies::COSMOS.units.end()) {
-                        throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Unknown unit while parsing transaction");
-                    }
-                    //TODO: Fix Amount::toUnit and use right unit
-                    account.balances.emplace_front(BigInt(amount) * BigInt(10).pow(static_cast<unsigned short>((*unit).numberOfDecimal)));
+                    BigInt value;
+                    parseAmountField(balance.GetObject(), value);
+                    account.balances.emplace_back(value);
                 }
             }
 
@@ -74,8 +101,6 @@ namespace ledger {
                     //TODO: set rest of block data
                     transaction.block = block;
                 }
-                if (node.HasMember("memo"))
-                    transaction.memo = node["memo"].GetString();
                 if (node.HasMember("gas_used"))
                     transaction.gasUsed = Option<BigInt>(BigInt::fromString(node["gas_used"].GetString()));
                 for (const auto& lNode : node["logs"].GetArray()) {
@@ -85,9 +110,37 @@ namespace ledger {
                     log.messageIndex = BigInt::fromString(lNode["msg_index"].GetString()).toInt();
                     transaction.logs.emplace_back(log);
                 }
+                transaction.timestamp = DateUtils::fromJSON(node["timestamp"].GetString());
+
+                const auto& tNode = node["tx"].GetObject();
+                const auto& vNode = tNode["value"].GetObject();
+
+                if (vNode.HasMember("memo"))
+                    transaction.memo = vNode["memo"].GetString();
+
+                for (const auto& mNode : vNode["msg"].GetArray()) {
+                    const auto& mvNode = mNode["value"].GetObject();
+                    CosmosLikeBlockchainExplorerMessage message;
+                    message.type = mNode["type"].GetString();
+                    // TODO COSMOS Investigate why Amount is an array maybe for multiple currencies?
+                    for (const auto& aNode : mvNode["amount"].GetArray())
+                        parseAmountField(aNode.GetObject(), message.amount);
+                    message.sender = getStringFromVariableKeys(mvNode, {"from_address", "delegator_address"});
+                    message.recipient = getStringFromVariableKeys(mvNode, {"to_address", "validator_address"});
+                    transaction.messages.emplace_back(message);
+                }
+                const auto& fNode =  vNode["fee"].GetObject();
+                transaction.gasLimit = BigInt::fromString(fNode["gas"].GetString());
+                int index = 0;
+                for (const auto& fNode :fNode["amount"].GetArray()) {
+                    BigInt amount;
+                    parseAmountField(fNode, transaction.messages[index].fees);
+                    index += 1;
+                }
 
             }
-        };
+
+        }
     }
 }
 

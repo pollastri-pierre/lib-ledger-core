@@ -88,7 +88,15 @@ namespace ledger {
         }
 
         FuturePtr<Block> NodeCosmosLikeBlockchainExplorer::getCurrentBlock() const {
-            throw make_exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Not implemented");
+            auto params = _parameters;
+            return _http->GET(fmt::format("/blocks/latest")).json(true)
+                    .map<std::shared_ptr<Block>>(getContext(),
+                            [=] (const HttpRequest::JsonResult& response) {
+                        auto result = std::make_shared<Block>();
+                        const auto& document = std::get<1>(response)->GetObject();
+                        rpcs_parsers::parseBlock(document, params.Identifier, *result);
+                        return result;
+                    });
         }
 
         FuturePtr<CosmosLikeBlockchainExplorerTransaction>
