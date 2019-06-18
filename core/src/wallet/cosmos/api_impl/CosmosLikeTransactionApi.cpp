@@ -53,24 +53,22 @@ namespace ledger {
         CosmosLikeTransactionApi::CosmosLikeTransactionApi(const std::shared_ptr<OperationApi> &operation) {
             auto &tx = operation->getBackend().cosmosTransaction.getValue();
             _time = tx.timestamp;
-
             // TODO COSMOS Retrieve a block (the model only has an optional height)
             _block = nullptr;
 
             _hash = tx.hash;
-
             _currency = operation->getAccount()->getWallet()->getCurrency();
-
             _gasPrice = std::make_shared<Amount>(_currency, 0, tx.gasPrice);
             _gasLimit = std::make_shared<Amount>(_currency, 0, tx.gasLimit);
 
             // TODO COSMOS Hack!!! Normally we should have multiple messages here and not a sender and recipient
-
-            _value = std::make_shared<Amount>(_currency, 0, tx.messages.front().amount);
-
-            _receiver = CosmosLikeAddress::fromBech32(tx.messages.front().recipient, _currency);
-            _sender = CosmosLikeAddress::fromBech32(tx.messages.front().sender, _currency);
-
+            if (tx.messages.empty()) {
+                throw Exception(api::ErrorCode::INVALID_ARGUMENT, "No messages while creating Cosmos transaction");
+            } else {
+                _value = std::make_shared<Amount>(_currency, 0, tx.messages.front().amount);
+                _receiver = CosmosLikeAddress::fromBech32(tx.messages.front().recipient, _currency);
+                _sender = CosmosLikeAddress::fromBech32(tx.messages.front().sender, _currency);
+            }
         }
 
         std::string CosmosLikeTransactionApi::getHash() {
