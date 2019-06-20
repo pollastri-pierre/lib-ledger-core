@@ -169,7 +169,6 @@ namespace ledger {
         // Stellar support
         template <> void migrate<18>(soci::session& sql);
         template <> void rollback<18>(soci::session& sql);
-
     }
 }
 
