@@ -571,7 +571,6 @@ namespace ledger {
         }
 
         template <> void migrate<11>(soci::session& sql) {
-<<<<<<< HEAD
             sql << "CREATE TABLE tezos_currencies("
                     "name VARCHAR(255) PRIMARY KEY NOT NULL REFERENCES currencies(name) ON DELETE CASCADE ON UPDATE CASCADE,"
                     "identifier VARCHAR(255) NOT NULL,"
