@@ -106,10 +106,15 @@ else()
     target_link_libraries(ledger-core-interface INTERFACE fmt)
 endif(MINGW OR MSVC)
 
+
 if (SYS_OPENSSL)
     target_link_libraries(ledger-core-interface INTERFACE blake)
 else()
     target_link_libraries(ledger-core-interface INTERFACE crypto)
+endif()
+
+if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif()
 target_link_libraries(ledger-core-interface INTERFACE soci_sqlite3)
 target_link_libraries(ledger-core-interface INTERFACE soci_core_static)
