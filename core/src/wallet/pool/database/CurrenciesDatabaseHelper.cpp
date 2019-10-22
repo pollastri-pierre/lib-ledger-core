@@ -29,7 +29,6 @@
  *
  */
 #include "CurrenciesDatabaseHelper.hpp"
-#include "../../../../../cmake-build-debug/include/ledger/core/api/ErrorCode.hpp"
 #include <api/BitcoinLikeNetworkParameters.hpp>
 #include <api/EthereumLikeNetworkParameters.hpp>
 #include <utils/hex.h>
