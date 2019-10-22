@@ -30,7 +30,6 @@
  */
 #include "Operation.h"
 #include "database/OperationDatabaseHelper.h"
-#include "../../../../cmake-build-debug/include/ledger/core/api/ErrorCode.hpp"
 #include <utils/Exception.hpp>
 #include <fmt/format.h>
 namespace ledger {
