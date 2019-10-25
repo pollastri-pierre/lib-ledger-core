@@ -73,15 +73,15 @@ namespace ledger {
             Option<BigInt> gasUsed;
             BigInt gasPrice; // TODO COSMOS Hackathon shortcut, the gas price seems to be set per messages
             std::chrono::system_clock::time_point timestamp;
-            std::list<CosmosLikeBlockchainExplorerMessage> messages;
+            std::vector<CosmosLikeBlockchainExplorerMessage> messages;
             std::string memo;
-            std::list<CosmosLikeBlockchainExplorerLog> logs;
+            std::vector<CosmosLikeBlockchainExplorerLog> logs;
         };
 
         struct CosmosLikeBlockchainExplorerAccount {
             std::string type;
             std::string address;
-            std::list<BigInt> balances;
+            std::vector<BigInt> balances;
             std::string accountNumber;
             std::string sequence;
         };
