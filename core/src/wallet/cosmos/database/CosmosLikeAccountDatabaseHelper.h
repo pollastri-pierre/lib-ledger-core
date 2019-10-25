@@ -48,11 +48,6 @@ namespace ledger {
             static bool queryAccount(soci::session& sql,
                                      const std::string& accountUid,
                                      CosmosLikeAccountDatabaseEntry& entry);
-
-            static size_t queryOperations(soci::session &sql,
-                                          const std::string &accountUid,
-                                          std::vector<Operation> &operations,
-                                          std::function<bool(const std::string &address)> filter);
         };
     }
 }

@@ -48,25 +48,15 @@ BB *
 #include <wallet/common/Block.h>
 #include <wallet/common/explorers/AbstractBlockchainExplorer.h>
 #include <wallet/cosmos/keychains/CosmosLikeKeychain.h>
-
 namespace ledger {
     namespace core {
-
-        struct CosmosLikeBlockchainExplorerAmountField {
-            BigInt value;
-            std::string denom;
-        };
-
-        struct CosmosLikeBlockchainExplorerFee {
-            std::list<CosmosLikeBlockchainExplorerAmountField> amount;
-            BigInt gas;
-        };
 
         struct CosmosLikeBlockchainExplorerMessage {
             std::string type;
             std::string sender;
             std::string recipient;
-            CosmosLikeBlockchainExplorerAmountField amount;
+            BigInt amount;
+            BigInt fees;
         };
 
         struct CosmosLikeBlockchainExplorerLog {
@@ -76,14 +66,14 @@ namespace ledger {
         };
 
         struct CosmosLikeBlockchainExplorerTransaction {
+            std::string uid;
             std::string hash;
-            Option<BigInt> height;
+            Option<Block> block;
             BigInt gasLimit;
             Option<BigInt> gasUsed;
             BigInt gasPrice; // TODO COSMOS Hackathon shortcut, the gas price seems to be set per messages
             std::chrono::system_clock::time_point timestamp;
             std::list<CosmosLikeBlockchainExplorerMessage> messages;
-            CosmosLikeBlockchainExplorerFee fee;
             std::string memo;
             std::list<CosmosLikeBlockchainExplorerLog> logs;
         };
@@ -91,7 +81,7 @@ namespace ledger {
         struct CosmosLikeBlockchainExplorerAccount {
             std::string type;
             std::string address;
-            std::list<CosmosLikeBlockchainExplorerAmountField> balances;
+            std::list<BigInt> balances;
             std::string accountNumber;
             std::string sequence;
         };

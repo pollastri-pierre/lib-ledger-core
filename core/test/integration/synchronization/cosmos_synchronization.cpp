@@ -85,20 +85,17 @@ TEST_F(CosmosLikeWalletSynchronization, GetTransactionsWithExplorer) {
     for (const auto& tx : transactions) {
         if (tx.hash == "A57D7FD9615739D0F07F34FCFD352441B939C094F621E49C562A664A02650087") {
             foundTx = true;
-            ASSERT_EQ(tx.height->toInt(), 174362);
+            ASSERT_EQ(tx.block.getValue().height, 174362);
             ASSERT_EQ(tx.logs.size(), 1);
             ASSERT_EQ(tx.logs.front().log, "");
             ASSERT_EQ(tx.logs.front().success, true);
             ASSERT_EQ(tx.messages.size(), 1);
             ASSERT_EQ(tx.messages.front().recipient, "cosmos16xkkyj97z7r83sx45xwk9uwq0mj0zszlf6c6mq");
             ASSERT_EQ(tx.messages.front().sender, "cosmos1pvnsselytw4zp9tym6a8m3ym88snezmezgx2rn");
-            ASSERT_EQ(tx.messages.front().amount.denom, "uatom");
-            ASSERT_EQ(tx.messages.front().amount.value.toInt(), 1123000);
+            ASSERT_EQ(tx.messages.front().amount.toInt(), 1123000);
             ASSERT_EQ(tx.messages.front().type, "cosmos-sdk/MsgSend");
-            ASSERT_EQ(tx.fee.amount.size(), 1);
-            ASSERT_EQ(tx.fee.amount.front().value.toInt(), 969);
-            ASSERT_EQ(tx.fee.amount.front().denom, "uatom");
-            ASSERT_EQ(tx.fee.gas.toInt(), 38731);
+            ASSERT_EQ(tx.messages.front().fees.toInt(), 969);
+            ASSERT_EQ(tx.gasLimit.toInt(), 38731);
             ASSERT_EQ(tx.gasUsed->toInt(), 29354);
             ASSERT_EQ(tx.memo, "(Sent via Lunie)");
             break;

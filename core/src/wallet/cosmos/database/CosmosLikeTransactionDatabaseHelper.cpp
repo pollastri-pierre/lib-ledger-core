@@ -35,6 +35,7 @@
 #include <database/soci-number.h>
 #include <crypto/SHA256.hpp>
 #include <wallet/common/database/BlockDatabaseHelper.h>
+#include <wallet/currencies.hpp>
 
 using namespace soci;
 
@@ -45,47 +46,51 @@ namespace ledger {
                                                                        const std::string &hash,
                                                                        CosmosLikeBlockchainExplorerTransaction &tx) {
 
-            //TODO
-            /*
-            rowset<row> rows = (sql.prepare << "SELECT  tx.hash, tx.value, tx.time, "
-                    " tx.sender, tx.receiver, tx.fees, tx.confirmations, "
-                    "block.height, block.hash, block.time, block.currency_name "
-                    "memo.data, memo.fmt, memo.ty "
+            rowset<row> rows = (sql.prepare << "SELECT tx.transaction_uid, tx.hash, tx.time, "
+                    "tx.gas_price, tx.gas_limit, tx.memo, tx.gas_used, "
+                    "block.height, block.hash, block.time, block.currency_name, "
+                    "msg.message_type, msg.from_address, msg.to_address, msg.amount_value, msg.fees "
                     "FROM cosmos_transactions AS tx "
                     "LEFT JOIN blocks AS block ON tx.block_uid = block.uid "
-                    "LEFT JOIN cosmos_memos AS memo ON memo.transaction_uid = tx.transaction_uid "
-                    "WHERE tx.hash = :hash"
-                    "ORDER BY memo.array_index ASC", use(hash));
+                    "LEFT JOIN cosmos_messages AS msg ON msg.transaction_uid = tx.transaction_uid "
+                    "WHERE tx.hash = :hash "
+                    "ORDER BY msg.msg_index ASC", use(hash));
 
             for (auto &row : rows) {
                 inflateTransaction(sql, row, tx);
                 return true;
             }
-            */
+
             return false;
         }
 
         bool CosmosLikeTransactionDatabaseHelper::inflateTransaction(soci::session &sql,
                                                                      const soci::row &row,
                                                                      CosmosLikeBlockchainExplorerTransaction &tx) {
-            // TODO COSMOS Get tx from database
-            // tx.hash = row.get<std::string>(0);
-            // tx.value = BigInt::fromHex(row.get<std::string>(1));
-            // tx.receivedAt = row.get<std::chrono::system_clock::time_point>(2);
-            // tx.sender = row.get<std::string>(3);
-            // tx.receiver = row.get<std::string>(4);
-            // //TODO: gas limit and price
-            // tx.confirmations = get_number<uint64_t>(row, 6);
-            // if (row.get_indicator(7) != i_null) {
-            //     CosmosLikeBlockchainExplorer::Block block;
-            //     block.height = get_number<uint64_t>(row, 7);
-            //     block.hash = row.get<std::string>(8);
-            //     block.time = row.get<std::chrono::system_clock::time_point>(9);
-            //     block.currencyName = row.get<std::string>(10);
-            //     tx.block = block;
-            // }
+            tx.uid = row.get<std::string>(0);
+            tx.hash = row.get<std::string>(1);
+            tx.timestamp = row.get<std::chrono::system_clock::time_point>(3);
+            tx.gasPrice = BigInt(row.get<std::string>(4));
+            tx.gasLimit = BigInt(row.get<std::string>(5));
+            tx.memo = row.get<std::string>(6);
+            tx.gasUsed = BigInt(row.get<std::string>(7));
+             //TODO: gas limit and price
+            if (row.get_indicator(7) != i_null) {
+                CosmosLikeBlockchainExplorer::Block block;
+                block.height = get_number<uint64_t>(row, 8);
+                block.hash = row.get<std::string>(9);
+                block.time = row.get<std::chrono::system_clock::time_point>(10);
+                block.currencyName = row.get<std::string>(11);
+                tx.block = block;
+            }
 
-
+            CosmosLikeBlockchainExplorerMessage msg;
+            msg.type = row.get<std::string>(12);
+            msg.sender = row.get<std::string>(13);
+            msg.recipient = row.get<std::string>(14);
+            msg.amount = row.get<std::string>(15);
+            msg.fees = row.get<std::string>(16);
+            tx.messages.push_back(msg);
             return true;
         }
 
@@ -103,11 +108,87 @@ namespace ledger {
             return result;
         }
 
+        std::string CosmosLikeTransactionDatabaseHelper::createCosmosMessageUid(const std::string &txUid,
+                                                                                uint64_t msgIndex) {
+            auto result = SHA256::stringToHexHash(fmt::format("uid:{}+{}", txUid, msgIndex));
+            return result;
+        }
+
         std::string CosmosLikeTransactionDatabaseHelper::putTransaction(soci::session &sql,
                                                                         const std::string &accountUid,
                                                                         const CosmosLikeBlockchainExplorerTransaction &tx) {
+            auto blockUid = tx.block.map<std::string>([](const CosmosLikeBlockchainExplorer::Block &block) {
+                return block.getUid();
+            });
+
             auto cosmosTxUid = createCosmosTransactionUid(accountUid, tx.hash);
-            return cosmosTxUid;
+
+            if (transactionExists(sql, cosmosTxUid)) {
+                // UPDATE (we only update block information)
+                if (tx.block.nonEmpty()) {
+                    sql << "UPDATE cosmos_transactions SET block_uid = :uid WHERE hash = :tx_hash",
+                            use(blockUid), use(tx.hash);
+                }
+                return cosmosTxUid;
+            } else {
+                // Insert
+                if (tx.block.nonEmpty()) {
+                    BlockDatabaseHelper::putBlock(sql, tx.block.getValue());
+                }
+
+                auto gasPrice = tx.gasPrice.toString();
+                auto gasLimit = tx.gasLimit.toString();
+                auto gasUsed = tx.gasUsed->toString();
+                sql << "INSERT INTO cosmos_transactions VALUES(:tx_uid, :hash, :block_uid, :time, :gas_price, :gas_limit, :memo, :gas_used)",
+                        use(cosmosTxUid),
+                        use(tx.hash),
+                        use(blockUid),
+                        use(tx.timestamp),
+                        use(gasPrice),
+                        use(gasPrice),
+                        use(tx.memo),
+                        use(gasUsed);
+
+                std::string type;
+                std::string sender;
+                std::string recipient;
+                BigInt amount;
+                BigInt fees;
+
+                int msgIndex = 0;
+                std::list<CosmosLikeBlockchainExplorerMessage>::iterator it;
+
+                std::for_each(tx.messages.begin(), tx.messages.end(), [&](const CosmosLikeBlockchainExplorerMessage &msg) {
+                    auto amount = msg.amount.toString();
+                    auto fees = msg.fees.toString();
+                    auto uid = createCosmosMessageUid(cosmosTxUid, msgIndex);
+                    sql << "INSERT INTO cosmos_messages VALUES (:tx_uid, :message_type, :from_address, :to_address, :amount_value, :fees, :log, :success, :msg_index)",
+                            use(uid),
+                            use(msg.type),
+                            use(msg.sender),
+                            use(msg.recipient),
+                            use(amount),
+                            use(fees),
+                            use(msgIndex);
+                    ++msgIndex;
+                });
+//                for (it = tx.messages.begin(); it != tx.messages.end(); ++it) {
+//                    auto amount = it->amount.toString();
+//                    auto fees = it->fees.toString();
+//                    sql << "INSERT INTO cosmos_messages VALUES (:tx_uid, :message_type, :from_address, :to_address, :amount_value, :fees, :log, :success, :msg_index)",
+//                            use(cosmosTxUid),
+//                            use(it->type),
+//                            use(it->sender),
+//                            use(it->recipient),
+//                            use(amount),
+//                            use(fees),
+//                            use(msgIndex);
+//
+//                    ++msgIndex;
+//                }
+
+                return cosmosTxUid;
+            }
         }
     }
 }

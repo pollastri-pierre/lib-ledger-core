@@ -35,6 +35,7 @@
 #include "../CosmosLikeBlockchainExplorer.h"
 #include <rapidjson/document.h>
 #include <utils/Option.hpp>
+#include <wallet/currencies.hpp>
 
 namespace ledger {
     namespace core {
@@ -49,10 +50,17 @@ namespace ledger {
                 account.type = accountNode["type"].GetString();
                 const auto& balances = node["coins"].GetArray();
                 for (const auto& balance : balances) {
-                    CosmosLikeBlockchainExplorerAmountField out;
-                    out.value = BigInt::fromString(balance.GetObject()["amount"].GetString());
-                    out.denom = balance.GetObject()["denom"].GetString();
-                    account.balances.emplace_front(out);
+                    auto amount = BigInt::fromString(balance.GetObject()["amount"].GetString());
+                    auto denom = balance.GetObject()["denom"].GetString();
+
+                    auto unit = std::find_if(currencies::COSMOS.units.begin(), currencies::COSMOS.units.end(), [&] (const api::CurrencyUnit &unit) {
+                        return unit.name == denom;
+                    });
+                    if (unit == currencies::COSMOS.units.end()) {
+                        throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Unknown unit while parsing transaction");
+                    }
+                    //TODO: Fix Amount::toUnit and use right unit
+                    account.balances.emplace_front(BigInt(amount) * BigInt(10).pow(static_cast<unsigned short>((*unit).numberOfDecimal)));
                 }
             }
 
@@ -61,7 +69,10 @@ namespace ledger {
                     CosmosLikeBlockchainExplorerTransaction& transaction) {
                 transaction.hash = node["txhash"].GetString();
                 if (node.HasMember("height")) {
-                    transaction.height = Option<BigInt>(BigInt::fromString(node["height"].GetString()));
+                    Block block;
+                    block.height = BigInt::fromString(node["height"].GetString()).toUint64();
+                    //TODO: set rest of block data
+                    transaction.block = block;
                 }
                 if (node.HasMember("memo"))
                     transaction.memo = node["memo"].GetString();
