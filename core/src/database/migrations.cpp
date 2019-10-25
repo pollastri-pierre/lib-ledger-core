@@ -689,5 +689,70 @@ namespace ledger {
         template <> void rollback<16>(soci::session& sql) {
             sql << "ALTER TABLE tezos_accounts RENAME COLUMN public_key TO address";
         }
+        template <> void migrate<17>(soci::session& sql) {
+            sql << "CREATE TABLE cosmos_currencies("
+                    "name VARCHAR(255) PRIMARY KEY NOT NULL REFERENCES currencies(name) ON DELETE CASCADE ON UPDATE CASCADE,"
+                    "identifier VARCHAR(255) NOT NULL,"
+                    "xpub_version VARCHAR(255) NOT NULL,"
+                    "pubkey_prefix VARCHAR(255) NOT NULL,"
+                    "address_prefix VARCHAR(255) NOT NULL,"
+                    "message_prefix VARCHAR(255) NOT NULL,"
+                    "chain_id VARCHAR(255) NOT NULL,"
+                    "additional_CIPs TEXT"
+                    ")";
+
+            sql << "CREATE TABLE cosmos_accounts("
+                    "uid VARCHAR(255) NOT NULL PRIMARY KEY REFERENCES accounts(uid) ON DELETE CASCADE ON UPDATE CASCADE,"
+                    "wallet_uid VARCHAR(255) NOT NULL REFERENCES wallets(uid) ON DELETE CASCADE ON UPDATE CASCADE,"
+                    "idx INTEGER NOT NULL,"
+                    "address VARCHAR(255) NOT NULL"
+                    ")";
+
+            sql << "CREATE TABLE cosmos_transactions("
+                    "transaction_uid VARCHAR(255) PRIMARY KEY NOT NULL,"
+                    "hash VARCHAR(255) NOT NULL,"
+                    "value VARCHAR(255) NOT NULL,"
+                    "block_uid VARCHAR(255) REFERENCES blocks(uid) ON DELETE CASCADE,"
+                    "time VARCHAR(255) NOT NULL,"
+                    "sender VARCHAR(255) NOT NULL,"
+                    "receiver VARCHAR(255) NOT NULL,"
+                    "gas_price VARCHAR(255) NOT NULL,"
+                    "gas_limit VARCHAR(255) NOT NULL,"
+                    "memo TEXT"
+                    "gas_used VARCHAR(255)"
+                    ")";
+
+            sql << "CREATE TABLE cosmos_messages("
+                   "uid VARCHAR(255) PRIMARY KEY NOT NULL,"
+                   "transaction_uid VARCHAR(255) NOT NULL "
+                   "REFERENCES cosmos_transactions(transaction_uid) ON DELETE CASCADE ON UPDATE CASCADE,"
+                   "message_type VARCHAR(255) NOT NULL,"
+                   "from_address VARCHAR(255) NOT NULL,"
+                   "to_address VARCHAR(255) NOT NULL,"
+                   "amount_value VARCHAR(255) NOT NULL,"
+                   "log TEXT,"
+                   "success INTEGER"
+                   ")";
+
+            sql << "CREATE TABLE cosmos_operations("
+                    "uid VARCHAR(255) PRIMARY KEY NOT NULL REFERENCES operations(uid) ON DELETE CASCADE,"
+                    "message_uid VARCHAR(255) NOT NULL REFERENCES cosmos_messages(uid)"
+                    ")";
+
+        }
+
+        template <> void rollback<17>(soci::session& sql) {
+            sql << "DROP TABLE tezos_originated_accounts";
+
+            sql << "DROP TABLE cosmos_transactions";
+
+            sql << "DROP TABLE cosmos_operations";
+
+            sql << "DROP TABLE cosmos_accounts";
+
+            sql << "DROP TABLE cosmos_currencies";
+        }
+
+
     }
 }
