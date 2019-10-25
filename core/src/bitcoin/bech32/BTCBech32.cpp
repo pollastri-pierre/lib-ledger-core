@@ -80,12 +80,12 @@ namespace ledger {
             std::vector<uint8_t> converted;
             int fromBits = 5, toBits = 8;
             bool pad = false;
-            auto result = Bech32::convertBits(std::vector<uint8_t>(decoded.second.begin() + 1, decoded.second.end()),
+            auto result = Bech32::convertBits(std::vector<uint8_t>(decoded.second.begin() + _offsetConversion, decoded.second.end()),
                                               fromBits,
                                               toBits,
                                               pad,
                                               converted);
-            if (!result || converted.size() < 2 ||
+             if (!result || converted.size() < 2 ||
                 converted.size() > 40 || decoded.second[0] > 16 ||
                 (decoded.second[0] == 0 && converted.size() != 20 && converted.size() != 32)) {
                 throw Exception(api::ErrorCode::INVALID_BECH32_FORMAT, "Invalid address : Invalid bech 32 format");
