@@ -67,6 +67,10 @@ namespace ledger {
             CosmosLikeTransactionApi & setGasLimit(const std::shared_ptr<BigInt>& gasLimit);
             CosmosLikeTransactionApi & setGasPrice(const std::shared_ptr<BigInt>& gasPrice);
             CosmosLikeTransactionApi & setGasAdjustment(double gasAdjustment);
+            CosmosLikeTransactionApi & setSequence(const std::string &sequence);
+            CosmosLikeTransactionApi & setMemo(const std::string &memo);
+            CosmosLikeTransactionApi & setAccountNumber(const std::string &accountNumber);
+
         private:
             std::chrono::system_clock::time_point _time;
             std::shared_ptr<CosmosLikeBlockApi> _block;
@@ -76,6 +80,9 @@ namespace ledger {
             std::shared_ptr<api::Amount> _gasLimit;
             std::shared_ptr<api::Amount> _gasPrice;
             double _gasAdjustment;
+            std::string _accountNumber;
+            std::string _sequence;
+            std::string _memo;
             std::shared_ptr<api::CosmosLikeAddress> _receiver;
             std::shared_ptr<api::CosmosLikeAddress> _sender;
             std::vector<uint8_t> _rSignature;

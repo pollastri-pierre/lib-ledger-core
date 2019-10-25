@@ -38,7 +38,10 @@
 #include <bytes/BytesReader.h>
 #include <utils/hex.h>
 #include <api_impl/BigIntImpl.hpp>
-
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+using namespace rapidjson;
 namespace ledger {
     namespace core {
 
@@ -145,8 +148,75 @@ namespace ledger {
         }
 
         std::string CosmosLikeTransactionApi::serialize() {
-            //TODO
-            return "";
+            Document document;
+            Document::AllocatorType& allocator = document.GetAllocator();
+
+
+            Value vString(rapidjson::kStringType);
+            vString.SetString(_accountNumber.c_str(), static_cast<rapidjson::SizeType>(_accountNumber.length()), allocator);
+            document.AddMember("account_number", vString, allocator);
+
+            auto chainID = _currency.cosmosLikeNetworkParameters.value().ChainId;
+            vString.SetString(chainID.c_str(), static_cast<rapidjson::SizeType>(chainID.length()), allocator);
+            document.AddMember("chain_id", vString, allocator);
+
+            vString.SetString(_memo.c_str(), static_cast<rapidjson::SizeType>(_memo.length()), allocator);
+            document.AddMember("memo", vString, allocator);
+
+            vString.SetString(_sequence.c_str(), static_cast<rapidjson::SizeType>(_sequence.length()), allocator);
+            document.AddMember("sequence", vString, allocator);
+
+            auto getAmountObject = [&] (const std::string &denom, const std::string &amount) {
+                Value amountObject(kObjectType);
+                Value vStringLocal(rapidjson::kStringType);
+                vStringLocal.SetString(amount.c_str(), static_cast<rapidjson::SizeType>(amount.length()), allocator);
+                amountObject.AddMember("amount", vStringLocal, allocator);
+                vStringLocal.SetString(denom.c_str(), static_cast<rapidjson::SizeType>(denom.length()), allocator);
+                amountObject.AddMember("denom", vStringLocal, allocator);
+                return amountObject;
+            };
+
+            // Fees object
+            auto fees = std::make_shared<BigInt>(BigInt(_gasPrice->toString()) * BigInt(_gasLimit->toString()));
+            auto feeAmountObj = getAmountObject(fees->toString(), _gasPrice->getUnit().name);
+            Value feeArray(kArrayType);
+            feeArray.PushBack(feeAmountObj, allocator);
+            Value feeAmountObject(kObjectType);
+            feeAmountObject.AddMember("amount", feeArray, allocator);
+            auto gasLimit = _gasLimit->toString();
+            vString.SetString(gasLimit.c_str(), static_cast<rapidjson::SizeType>(gasLimit.length()), allocator);
+            feeAmountObject.AddMember("gas", vString, allocator);
+            Value vDouble(rapidjson::kNumberType);
+            vDouble.SetDouble(_gasAdjustment);
+            feeAmountObject.AddMember("gas_adjustment", vDouble, allocator);
+
+            //cosmos-sdk/MsgSend
+            Value msgValueObject(kObjectType);
+            auto amountObj = getAmountObject(_value->toString(), _value->getUnit().name);
+            msgValueObject.AddMember("value", amountObj, allocator);
+            auto from =  _sender->toBech32();
+            vString.SetString(from.c_str(), static_cast<rapidjson::SizeType>(from.length()), allocator);
+            msgValueObject.AddMember("from", vString, allocator);
+            auto to = _receiver->toBech32();
+            vString.SetString(to.c_str(), static_cast<rapidjson::SizeType>(to.length()), allocator);
+            msgValueObject.AddMember("to", vString, allocator);
+
+            Value msgObject(kObjectType);
+            //TODO: to change when supportig other types
+            std::string msgType = "cosmos-sdk/MsgSend";
+            vString.SetString(msgType.c_str(), static_cast<rapidjson::SizeType>(msgType.length()), allocator);
+            msgObject.AddMember("type", vString, allocator);
+            msgObject.AddMember("value", msgValueObject, allocator);
+
+            Value msgArray(kArrayType);
+            msgArray.PushBack(msgObject, allocator);
+
+            document.AddMember("msgs", msgArray, allocator);
+
+            StringBuffer buffer;
+            Writer<StringBuffer> writer(buffer);
+            document.Accept(writer);
+            return buffer.GetString();
         }
 
         CosmosLikeTransactionApi &CosmosLikeTransactionApi::setValue(const std::shared_ptr<BigInt> &value) {
@@ -196,9 +266,25 @@ namespace ledger {
             return *this;
         }
 
-        CosmosLikeTransactionApi & CosmosLikeTransactionApi::setGasAdjustment(double gasAdjustment) {
+        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setGasAdjustment(double gasAdjustment) {
             _gasAdjustment = gasAdjustment;
             return *this;
         }
+
+        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setSequence(const std::string &sequence) {
+            _sequence = sequence;
+            return *this;
+        }
+
+        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setMemo(const std::string &memo) {
+            _memo = memo;
+            return *this;
+        }
+
+        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setAccountNumber(const std::string &accountNumber) {
+            _accountNumber = accountNumber;
+            return *this;
+        }
+
     }
 }

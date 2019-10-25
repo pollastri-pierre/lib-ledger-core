@@ -4,10 +4,8 @@
 #ifndef DJINNI_GENERATED_COSMOSLIKETRANSACTIONBUILDER_HPP
 #define DJINNI_GENERATED_COSMOSLIKETRANSACTIONBUILDER_HPP
 
-#include <cstdint>
 #include <memory>
 #include <string>
-#include <vector>
 #ifndef LIBCORE_EXPORT
     #if defined(_MSC_VER)
        #include <libcore_export.h>
@@ -64,9 +62,9 @@ public:
     /** Reset the current instance to its initial state */
     virtual void reset() = 0;
 
-    static std::shared_ptr<CosmosLikeTransaction> parseRawUnsignedTransaction(const Currency & currency, const std::vector<uint8_t> & rawTransaction);
+    static std::shared_ptr<CosmosLikeTransaction> parseRawUnsignedTransaction(const Currency & currency, const std::string & rawTransaction);
 
-    static std::shared_ptr<CosmosLikeTransaction> parseRawSignedTransaction(const Currency & currency, const std::vector<uint8_t> & rawTransaction);
+    static std::shared_ptr<CosmosLikeTransaction> parseRawSignedTransaction(const Currency & currency, const std::string & rawTransaction);
 };
 
 } } }  // namespace ledger::core::api

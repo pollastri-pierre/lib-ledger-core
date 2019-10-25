@@ -14,6 +14,7 @@
 namespace ledger { namespace core { namespace api {
 
 struct BitcoinLikeNetworkParameters;
+struct CosmosLikeNetworkParameters;
 struct EthereumLikeNetworkParameters;
 struct RippleLikeNetworkParameters;
 struct TezosLikeNetworkParameters;
@@ -34,6 +35,9 @@ public:
 
     /** The Tezos network parameters. */
     static TezosLikeNetworkParameters tezos();
+
+    /** The Cosmos network parameters. */
+    static CosmosLikeNetworkParameters cosmos();
 };
 
 } } }  // namespace ledger::core::api
