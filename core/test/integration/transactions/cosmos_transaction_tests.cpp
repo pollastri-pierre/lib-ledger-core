@@ -36,12 +36,12 @@
 #include <api/Amount.hpp>
 #include <wallet/currencies.hpp>
 #include <utils/hex.h>
-
+#include <cosmos/CosmosLikeExtendedPublicKey.h>
+#include <wallet/cosmos/api_impl/CosmosLikeTransactionApi.h>
 using namespace ledger::core::api;
 using namespace ledger::core;
 
 TEST(CosmosMakeTransaction, ParseSignedRawTransaction) {
-    // round-trip
     auto strTx = "{\"account_number\":\"6571\",\"chain_id\":\"cosmoshub-2\",\"fee\":{\"amount\":[{\"amount\":\"5000\",\"denom\":\"uatom\"}],\"gas\":\"200000\"},\"memo\":\"Sent from Ledger\",\"msgs\":[{\"type\":\"cosmos-sdk/MsgSend\",\"value\":{\"amount\":{\"amount\":\"1000000\",\"denom\":\"uatom\"},\"from\":\"cosmos102hty0jv2s29lyc4u0tv97z9v298e24t3vwtpl\",\"to\":\"cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7\"}}],\"sequence\":\"0\"}";
     auto tx = api::CosmosLikeTransactionBuilder::parseRawSignedTransaction(ledger::core::currencies::COSMOS, strTx);
 
@@ -52,4 +52,16 @@ TEST(CosmosMakeTransaction, ParseSignedRawTransaction) {
     EXPECT_EQ(tx->getValue()->toLong(), 1000000000L);
     EXPECT_EQ(tx->getFees()->toLong(), 5000000L);
     EXPECT_EQ(tx->getGasLimit()->toLong(), 200000L);
+
+    //Put public key
+    auto pubKeyBech32 = "cosmospub1addwnpepqtztanmggwrgm92kafpagegck5dp8jc6frxkcpdzrspfafprrlx7gmvhdq6";
+    auto pubKey = ledger::core::CosmosLikeExtendedPublicKey::fromBech32(ledger::core::currencies::COSMOS, pubKeyBech32, Option<std::string>("44'/118'/0'"))->derivePublicKey("");
+    std::dynamic_pointer_cast<CosmosLikeTransactionApi>(tx)->setSigningPubKey(pubKey);
+
+    //Put signature
+    auto sSignature = "3045022100f4d9fb033eb6bc32d6d1b32075c3b6ea4cce795aed77f3341b15c5b1e3e085c802207b958d3df288bafcc167af4ccaa1eca83f12d48c22129fa251be9549db65a606";
+    auto signature = hex::toByteArray(sSignature);
+    tx->setDERSignature(signature);
+
+    std::cout<<">> "<<tx->serialize()<<std::endl;
 }

@@ -41,6 +41,7 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <utils/base64.h>
 using namespace rapidjson;
 namespace ledger {
     namespace core {
@@ -212,6 +213,44 @@ namespace ledger {
             msgArray.PushBack(msgObject, allocator);
 
             document.AddMember("msgs", msgArray, allocator);
+
+            // Add signatures
+            if (!_sSignature.empty() && !_rSignature.empty()) {
+                Value sigArray(kArrayType);
+
+                Value pubKeyObject(kObjectType);
+                std::string pubKeyType = "tendermint/PubKeySecp256k1";
+                vString.SetString(pubKeyType.c_str(), static_cast<rapidjson::SizeType>(pubKeyType.length()), allocator);
+                pubKeyObject.AddMember("type", vString, allocator);
+
+                auto pubKeyValue = base64_encode(_signingPubKey.data(), _signingPubKey.size());
+                vString.SetString(pubKeyValue.c_str(), static_cast<rapidjson::SizeType>(pubKeyValue.length()), allocator);
+                pubKeyObject.AddMember("value", vString, allocator);
+
+
+                auto pad = [] (const std::vector<uint8_t> &input) {
+                    auto output = input;
+                    while(output.size() < 32) {
+                        output.emplace(output.begin(), 0x00);
+                    }
+                    return output;
+                };
+                auto signature = vector::concat(pad(_rSignature), pad(_sSignature));
+                if (signature.size() != 64) {
+                    throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Invalid signature when serializing transaction");
+                }
+
+                // Set pub key
+                Value sigObject(kObjectType);
+                sigObject.AddMember("pub_key", pubKeyObject, allocator);
+                // Set signature
+                auto strSignature = base64_encode(signature.data(), signature.size());
+                vString.SetString(strSignature.c_str(), static_cast<rapidjson::SizeType>(strSignature.length()), allocator);
+                sigObject.AddMember("signature", vString, allocator);
+
+                sigArray.PushBack(sigObject, allocator);
+                document.AddMember("signature", sigArray, allocator);
+            }
 
             vString.SetString(_sequence.c_str(), static_cast<rapidjson::SizeType>(_sequence.length()), allocator);
             document.AddMember("sequence", vString, allocator);
