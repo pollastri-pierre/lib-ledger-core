@@ -7,7 +7,7 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2019 Ledger
- *
+BB *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -52,33 +52,48 @@
 namespace ledger {
     namespace core {
 
+        struct CosmosLikeBlockchainExplorerAmountField {
+            BigInt value;
+            std::string denom;
+        };
+
+        struct CosmosLikeBlockchainExplorerFee {
+            std::list<CosmosLikeBlockchainExplorerAmountField> amount;
+            BigInt gas;
+        };
+
+        struct CosmosLikeBlockchainExplorerMessage {
+            std::string type;
+            std::string sender;
+            std::string recipient;
+            CosmosLikeBlockchainExplorerAmountField amount;
+        };
+
+        struct CosmosLikeBlockchainExplorerLog {
+            int32_t messageIndex;
+            bool success;
+            std::string log;
+        };
+
         struct CosmosLikeBlockchainExplorerTransaction {
             std::string hash;
-            std::chrono::system_clock::time_point receivedAt;
-            BigInt value;
+            Option<BigInt> height;
             BigInt gasLimit;
-            BigInt gasPrice;
-            std::string receiver;
-            std::string sender;
-            Option<Block> block;
-            uint64_t confirmations;
+            Option<BigInt> gasUsed;
+            BigInt gasPrice; // TODO COSMOS Hackathon shortcut, the gas price seems to be set per messages
+            std::chrono::system_clock::time_point timestamp;
+            std::list<CosmosLikeBlockchainExplorerMessage> messages;
+            CosmosLikeBlockchainExplorerFee fee;
+            std::string memo;
+            std::list<CosmosLikeBlockchainExplorerLog> logs;
+        };
 
-            CosmosLikeBlockchainExplorerTransaction() {
-                confirmations = 0;
-            }
-
-            CosmosLikeBlockchainExplorerTransaction(const CosmosLikeBlockchainExplorerTransaction &cpy) {
-                this->block = cpy.block;
-                this->hash = cpy.hash;
-                this->receivedAt = cpy.receivedAt;
-                this->confirmations = cpy.confirmations;
-                this->gasLimit = cpy.gasLimit;
-                this->gasPrice = cpy.gasPrice;
-                this->receiver = cpy.receiver;
-                this->sender = cpy.sender;
-                this->value = cpy.value;
-            }
-
+        struct CosmosLikeBlockchainExplorerAccount {
+            std::string type;
+            std::string address;
+            std::list<CosmosLikeBlockchainExplorerAmountField> balances;
+            std::string accountNumber;
+            std::string sequence;
         };
 
         class CosmosLikeBlockchainExplorer : public ConfigurationMatchable,
@@ -94,6 +109,10 @@ namespace ledger {
 
             virtual Future<std::shared_ptr<BigInt>>
             getEstimatedGasLimit(const std::shared_ptr<api::CosmosLikeTransaction> &transaction) = 0;
+
+            virtual Future<CosmosLikeBlockchainExplorerAccount> getAccount(const std::string& address) = 0;
+            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::string& filter) = 0;
+
         };
     }
 }

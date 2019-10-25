@@ -718,7 +718,7 @@ namespace ledger {
                     "receiver VARCHAR(255) NOT NULL,"
                     "gas_price VARCHAR(255) NOT NULL,"
                     "gas_limit VARCHAR(255) NOT NULL,"
-                    "memo TEXT"
+                    "memo TEXT,"
                     "gas_used VARCHAR(255)"
                     ")";
 

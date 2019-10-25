@@ -68,21 +68,22 @@ namespace ledger {
         bool CosmosLikeTransactionDatabaseHelper::inflateTransaction(soci::session &sql,
                                                                      const soci::row &row,
                                                                      CosmosLikeBlockchainExplorerTransaction &tx) {
-            tx.hash = row.get<std::string>(0);
-            tx.value = BigInt::fromHex(row.get<std::string>(1));
-            tx.receivedAt = row.get<std::chrono::system_clock::time_point>(2);
-            tx.sender = row.get<std::string>(3);
-            tx.receiver = row.get<std::string>(4);
-            //TODO: gas limit and price
-            tx.confirmations = get_number<uint64_t>(row, 6);
-            if (row.get_indicator(7) != i_null) {
-                CosmosLikeBlockchainExplorer::Block block;
-                block.height = get_number<uint64_t>(row, 7);
-                block.hash = row.get<std::string>(8);
-                block.time = row.get<std::chrono::system_clock::time_point>(9);
-                block.currencyName = row.get<std::string>(10);
-                tx.block = block;
-            }
+            // TODO COSMOS Get tx from database
+            // tx.hash = row.get<std::string>(0);
+            // tx.value = BigInt::fromHex(row.get<std::string>(1));
+            // tx.receivedAt = row.get<std::chrono::system_clock::time_point>(2);
+            // tx.sender = row.get<std::string>(3);
+            // tx.receiver = row.get<std::string>(4);
+            // //TODO: gas limit and price
+            // tx.confirmations = get_number<uint64_t>(row, 6);
+            // if (row.get_indicator(7) != i_null) {
+            //     CosmosLikeBlockchainExplorer::Block block;
+            //     block.height = get_number<uint64_t>(row, 7);
+            //     block.hash = row.get<std::string>(8);
+            //     block.time = row.get<std::chrono::system_clock::time_point>(9);
+            //     block.currencyName = row.get<std::string>(10);
+            //     tx.block = block;
+            // }
 
 
             return true;
@@ -105,40 +106,8 @@ namespace ledger {
         std::string CosmosLikeTransactionDatabaseHelper::putTransaction(soci::session &sql,
                                                                         const std::string &accountUid,
                                                                         const CosmosLikeBlockchainExplorerTransaction &tx) {
-            auto blockUid = tx.block.map<std::string>([](const CosmosLikeBlockchainExplorer::Block &block) {
-                return block.getUid();
-            });
-
             auto cosmosTxUid = createCosmosTransactionUid(accountUid, tx.hash);
-
-            if (transactionExists(sql, cosmosTxUid)) {
-                // UPDATE (we only update block information)
-                if (tx.block.nonEmpty()) {
-                    sql << "UPDATE cosmos_transactions SET block_uid = :uid WHERE hash = :tx_hash",
-                            use(blockUid), use(tx.hash);
-                }
-                return cosmosTxUid;
-            } else {
-                // Insert
-                if (tx.block.nonEmpty()) {
-                    BlockDatabaseHelper::putBlock(sql, tx.block.getValue());
-                }
-                auto hexValue = tx.value.toHexString();
-                /*
-                sql
-                        << "INSERT INTO cosmos_transactions VALUES(:tx_uid, :hash, :value, :block_uid, :time, :sender, :receiver, :fees, :confirmations)",
-                        use(cosmosTxUid),
-                        use(tx.hash),
-                        use(hexValue),
-                        use(blockUid),
-                        use(tx.receivedAt),
-                        use(tx.sender),
-                        use(tx.receiver),
-                        use(hexFees),
-                        use(tx.confirmations);
-                */
-                return cosmosTxUid;
-            }
+            return cosmosTxUid;
         }
     }
 }

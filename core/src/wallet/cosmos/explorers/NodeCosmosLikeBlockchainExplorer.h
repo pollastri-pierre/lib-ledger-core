@@ -139,11 +139,10 @@ namespace ledger {
 
             std::string getExplorerVersion() const override;
 
-        private:
-            Future<std::shared_ptr<BigInt>>
-            getAccountInfo(const std::string &address,
-                           const std::string &key);
+            virtual Future<CosmosLikeBlockchainExplorerAccount> getAccount(const std::string& address) override;
+            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::string& filter) override;
 
+        private:
             api::CosmosLikeNetworkParameters _parameters;
         };
     }

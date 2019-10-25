@@ -49,22 +49,13 @@ namespace ledger {
 
         using CosmosBlockchainAccountSynchronizer = AbstractBlockchainExplorerAccountSynchronizer<CosmosLikeAccount, CosmosLikeAddress, CosmosLikeKeychain, CosmosLikeBlockchainExplorer>;
 
-        class CosmosLikeBlockchainExplorerAccountSynchronizer : public CosmosBlockchainAccountSynchronizer,
-                                                                public CosmosLikeAccountSynchronizer,
+        class CosmosLikeBlockchainExplorerAccountSynchronizer : public CosmosLikeAccountSynchronizer,
                                                                 public DedicatedContext,
                                                                 public std::enable_shared_from_this<CosmosLikeBlockchainExplorerAccountSynchronizer> {
         public:
 
             CosmosLikeBlockchainExplorerAccountSynchronizer(const std::shared_ptr<WalletPool> &pool,
                                                             const std::shared_ptr<CosmosLikeBlockchainExplorer> &explorer);
-
-            void updateCurrentBlock(
-                    std::shared_ptr<AbstractBlockchainExplorerAccountSynchronizer::SynchronizationBuddy> &buddy,
-                    const std::shared_ptr<api::ExecutionContext> &context) override;
-
-            void updateTransactionsToDrop(soci::session &sql,
-                                          std::shared_ptr<SynchronizationBuddy> &buddy,
-                                          const std::string &accountUid) override;
 
             std::shared_ptr<ProgressNotifier<Unit>>
             synchronize(const std::shared_ptr<CosmosLikeAccount> &account) override;
@@ -76,9 +67,8 @@ namespace ledger {
 
 
         private:
-            std::shared_ptr<CosmosBlockchainAccountSynchronizer> getSharedFromThis() override;
-
-            std::shared_ptr<api::ExecutionContext> getSynchronizerContext() override;
+            std::shared_ptr<CosmosLikeBlockchainExplorer> _explorer;
+            std::shared_ptr<ProgressNotifier<Unit>> _notifier;
         };
     }
 }
