@@ -144,11 +144,10 @@ namespace ledger {
         }
 
         FuturePtr<Amount> CosmosLikeAccount::getBalance() {
-            std::vector<CosmosLikeKeychain::Address> listAddresses{_keychain->getAddress()};
             auto currency = getWallet()->getCurrency();
-            return _explorer->getBalance(listAddresses).mapPtr<Amount>(getContext(), [currency](
-                    const std::shared_ptr<BigInt> &balance) -> std::shared_ptr<Amount> {
-                return std::make_shared<Amount>(currency, 0, BigInt(balance->toString()));
+            return _explorer->getAccount(_keychain->getAddress()->toBech32()).mapPtr<Amount>(getContext(), [currency](const CosmosLikeBlockchainExplorerAccount &balance) {
+                //TODO: handle balanceS
+                return std::make_shared<Amount>(currency, 0, balance.balances.size() > 0 ? balance.balances[0] : BigInt::ZERO);
             });
         }
 

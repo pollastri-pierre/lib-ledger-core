@@ -42,10 +42,19 @@ namespace ledger {
         }
 
         std::shared_ptr<ProgressNotifier<Unit>>
-        CosmosLikeBlockchainExplorerAccountSynchronizer::synchronize(
-                const std::shared_ptr<CosmosLikeAccount> &account) {
-            // TODO COSMOS Implement synchronization
-            return nullptr;
+        CosmosLikeBlockchainExplorerAccountSynchronizer::synchronize(const std::shared_ptr<CosmosLikeAccount> &account) {
+            auto self = shared_from_this();
+            _notifier = std::make_shared<ProgressNotifier<Unit>>();
+            _explorer->getTransactions(account->getKeychain()->getAddress()->toBech32(), "recipient").onComplete(getContext(), [self] (const Try<std::list<CosmosLikeBlockchainExplorerTransaction>> &txs) {
+                std::lock_guard<std::mutex> l(self->_lock);
+                if (txs.isFailure()) {
+                    self->_notifier->failure(txs.getFailure());
+                } else {
+                    self->_notifier->success(unit);
+                }
+                self->_notifier = nullptr;
+            });
+            return _notifier;
         }
 
         bool CosmosLikeBlockchainExplorerAccountSynchronizer::isSynchronizing() const {

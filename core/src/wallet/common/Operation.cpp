@@ -45,7 +45,7 @@ namespace ledger {
             } else if (tezosTransaction.nonEmpty()) {
                 uid = OperationDatabaseHelper::createUid(accountUid, fmt::format("{}+{}", tezosTransaction.getValue().hash, api::to_string(tezosTransaction.getValue().type)), type);
             } else if (cosmosTransaction.nonEmpty()) {
-                throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing Implementation");
+                uid = OperationDatabaseHelper::createUid(accountUid, cosmosTransaction.getValue().hash, type);
             } else {
                 throw Exception(api::ErrorCode::RUNTIME_ERROR, "Cannot refresh uid of an incomplete operation.");
             }
