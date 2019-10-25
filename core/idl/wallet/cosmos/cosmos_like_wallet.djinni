@@ -15,8 +15,8 @@ CosmosLikeTransaction = interface +c {
 	getSender(): CosmosLikeAddress;
 	# Get amount of Cosmos to send
 	getValue(): optional<Amount>;
-	# Serialize the transaction to its raw format.
-	serialize(): binary;
+	# Serialize the transaction to its JSON format.
+	serialize(): string;
 	# Set signature of transaction, when a signature is set serialize method gives back serialized Tx
 	setSignature(rSignature: binary, sSignature: binary);
 	setDERSignature(signature: binary);
@@ -25,11 +25,9 @@ CosmosLikeTransaction = interface +c {
 	getDate(): date;
 	# Get Signing public Key
 	getSigningPubKey(): binary;
-	getCounter(): BigInt;
 	getGasLimit(): Amount;
 	getGasPrice(): Amount;
-	# Get hash of block in which tx is included
-	getBlockHash(): optional<string>;
+	getGasAdjustment(): f64;
 }
 
 #Class representing a Cosmos Operation
@@ -53,10 +51,6 @@ CosmosLikeBlock = interface +c {
 }
 
 CosmosLikeTransactionBuilder = interface +c {
-
-	# Set type of operation (transaction, origination, reveal ...)
-	# Default operation is "transaction" type
-	setType(type: CosmosOperationTag): CosmosLikeTransactionBuilder;
 	# Send funds to the given address. This method can be called multiple times to send to multiple addresses.
 	# @param amount The value to send
 	# @param address Address of the recipient
@@ -67,14 +61,14 @@ CosmosLikeTransactionBuilder = interface +c {
 	# @param address Address of the recipient
 	# @return A reference on the same builder in order to chain calls.
 	wipeToAddress(address: string): CosmosLikeTransactionBuilder;
-	
-	# Set fees (in drop) the originator is willing to pay
-	# @return A reference on the same builder in order to chain calls.
-	setFees(fees: Amount): CosmosLikeTransactionBuilder;
+
 	# Set gas limit the originator is not willing to exceed.
 	# @return A reference on the same builder in order to chain calls.
 	setGasLimit(gasLimit: Amount): CosmosLikeTransactionBuilder;
+
 	setGasPrice(gasPrice: Amount): CosmosLikeTransactionBuilder;
+
+	setGasAdjustment(gasAdjustment: f64): CosmosLikeTransactionBuilder;
 
 	# Build a transaction from the given builder parameters.
 	build(callback: Callback<CosmosLikeTransaction>);
@@ -92,11 +86,14 @@ CosmosLikeTransactionBuilder = interface +c {
 	
 #Class representing a Cosmos account
 CosmosLikeAccount = interface +c {
-	broadcastRawTransaction(transaction: binary, callback: Callback<string>);
+	broadcastRawTransaction(transaction: string, callback: Callback<string>);
 	broadcastTransaction(transaction: CosmosLikeTransaction, callback: Callback<string>);
 	buildTransaction(): CosmosLikeTransactionBuilder;
+	# Get estimated gas limit to set so the transaction will succeed
+	getEstimatedGasLimit(transaction: CosmosLikeTransaction, callback: Callback<BigInt>);
 }
 
 CosmosConfigurationDefaults = interface +c {
-	const Cosmos_DEFAULT_API_ENDPOINT: string = "https://stargate.cosmos.network";
+	const COSMOS_DEFAULT_API_ENDPOINT: string = "https://stargate.cosmos.network";
+	const COSMOS_OBSERVER_WS_ENDPOINT: string = "";
 }

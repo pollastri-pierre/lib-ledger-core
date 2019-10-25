@@ -63,8 +63,8 @@ namespace ledger {
                                                           const Option<std::string> &derivationPath = Option<std::string>());
 
             static std::shared_ptr<CosmosLikeAddress> fromBech32(const std::string &address,
-                                                          const api::Currency &currency,
-                                                          const Option<std::string> &derivationPath);
+                                                                 const api::Currency &currency,
+                                                                 const Option<std::string> &derivationPath = Option<std::string>());
 
         private:
             const std::vector<uint8_t> _version;

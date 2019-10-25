@@ -35,6 +35,7 @@
 #include <ethereum/EthereumLikeAddress.h>
 #include <ripple/RippleLikeAddress.h>
 #include <tezos/TezosLikeAddress.h>
+#include <cosmos/CosmosLikeAddress.h>
 
 namespace ledger {
     namespace core {
@@ -70,6 +71,8 @@ namespace ledger {
                     return ledger::core::RippleLikeAddress::parse(address, currency);
                 case WalletType::TEZOS:
                     return ledger::core::TezosLikeAddress::parse(address, currency);
+                case WalletType::COSMOS:
+                    return ledger::core::CosmosLikeAddress::parse(address, currency);
                 case WalletType::MONERO:
                     throw make_exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "MONERO address parser is not implemented yet");
             }

@@ -38,6 +38,8 @@
 #include <wallet/ethereum/database/EthereumLikeTransactionDatabaseHelper.h>
 #include <wallet/ripple/database/RippleLikeTransactionDatabaseHelper.h>
 #include <wallet/tezos/database/TezosLikeTransactionDatabaseHelper.h>
+#include <wallet/cosmos/database/CosmosLikeTransactionDatabaseHelper.h>
+#include <api/WalletType.hpp>
 
 namespace ledger {
     namespace core {
@@ -187,6 +189,7 @@ namespace ledger {
                 case (api::WalletType::ETHEREUM): return inflateEthereumLikeTransaction(sql, operation);
                 case (api::WalletType::RIPPLE): return inflateRippleLikeTransaction(sql, operation);
                 case (api::WalletType::TEZOS): return inflateTezosLikeTransaction(sql, operation);
+                case (api::WalletType::COSMOS): return inflateCosmosLikeTransaction(sql, operation);
                 case (api::WalletType::MONERO): return inflateMoneroLikeTransaction(sql, operation);
             }
         }
@@ -213,6 +216,12 @@ namespace ledger {
             std::string transactionHash;
             sql << "SELECT transaction_hash FROM tezos_operations WHERE uid = :uid", soci::use(operation.getBackend().uid), soci::into(transactionHash);
             TezosLikeTransactionDatabaseHelper::getTransactionByHash(sql, transactionHash, operation.getBackend().uid, operation.getBackend().tezosTransaction.getValue());
+        }
+
+        void OperationQuery::inflateCosmosLikeTransaction(soci::session &sql, OperationApi &operation) {
+            CosmosLikeBlockchainExplorerTransaction tx;
+            operation.getBackend().cosmosTransaction = Option<CosmosLikeBlockchainExplorerTransaction>(tx);
+            throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Missing implementation");
         }
 
         void OperationQuery::inflateEthereumLikeTransaction(soci::session &sql, OperationApi &operation) {
