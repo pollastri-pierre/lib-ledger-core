@@ -33,6 +33,7 @@
 #include "ethereum/ethereumNetworks.hpp"
 #include "ripple/rippleNetworks.h"
 #include "tezos/tezosNetworks.h"
+#include "cosmos/cosmosNetworks.h"
 #include <wallet/common/CurrencyBuilder.hpp>
 
 namespace ledger {
@@ -290,6 +291,16 @@ namespace ledger {
                             .unit("mXTZ", 0, "mXTZ")
                             .unit("XTZ", 3, "XTZ");
 
+            const api::Currency COSMOS =
+                    Currency("cosmos")
+                            .bip44(118)
+                            .forkOfCosmos(networks::getCosmosLikeNetworkParameters("cosmos"))
+                            .paymentUri("cosmos")
+                            .unit("natom", 0, "natom")
+                            .unit("uatom", 3, "uatom")
+                            .unit("matom", 6, "matom")
+                            .unit("atom", 9, "atom");
+
             const std::vector<api::Currency> ALL({
                 BITCOIN,
                 BITCOIN_TESTNET,
@@ -318,7 +329,8 @@ namespace ledger {
                 ETHEREUM_ROPSTEN,
                 ETHEREUM_CLASSIC,
                 RIPPLE,
-                TEZOS
+                TEZOS,
+                COSMOS
             });
         }
     }
