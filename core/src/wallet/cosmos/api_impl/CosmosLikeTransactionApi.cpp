@@ -149,8 +149,9 @@ namespace ledger {
 
         std::string CosmosLikeTransactionApi::serialize() {
             Document document;
-            Document::AllocatorType& allocator = document.GetAllocator();
+            document.SetObject();
 
+            Document::AllocatorType& allocator = document.GetAllocator();
 
             Value vString(rapidjson::kStringType);
             vString.SetString(_accountNumber.c_str(), static_cast<rapidjson::SizeType>(_accountNumber.length()), allocator);
@@ -159,12 +160,6 @@ namespace ledger {
             auto chainID = _currency.cosmosLikeNetworkParameters.value().ChainId;
             vString.SetString(chainID.c_str(), static_cast<rapidjson::SizeType>(chainID.length()), allocator);
             document.AddMember("chain_id", vString, allocator);
-
-            vString.SetString(_memo.c_str(), static_cast<rapidjson::SizeType>(_memo.length()), allocator);
-            document.AddMember("memo", vString, allocator);
-
-            vString.SetString(_sequence.c_str(), static_cast<rapidjson::SizeType>(_sequence.length()), allocator);
-            document.AddMember("sequence", vString, allocator);
 
             auto getAmountObject = [&] (const std::string &denom, const std::string &amount) {
                 Value amountObject(kObjectType);
@@ -178,7 +173,7 @@ namespace ledger {
 
             // Fees object
             auto fees = std::make_shared<BigInt>(BigInt(_gasPrice->toString()) * BigInt(_gasLimit->toString()));
-            auto feeAmountObj = getAmountObject(fees->toString(), _gasPrice->getUnit().name);
+            auto feeAmountObj = getAmountObject(_gasPrice->getUnit().name, fees->toString());
             Value feeArray(kArrayType);
             feeArray.PushBack(feeAmountObj, allocator);
             Value feeAmountObject(kObjectType);
@@ -187,12 +182,18 @@ namespace ledger {
             vString.SetString(gasLimit.c_str(), static_cast<rapidjson::SizeType>(gasLimit.length()), allocator);
             feeAmountObject.AddMember("gas", vString, allocator);
             Value vDouble(rapidjson::kNumberType);
-            vDouble.SetDouble(_gasAdjustment);
-            feeAmountObject.AddMember("gas_adjustment", vDouble, allocator);
+            if (_gasAdjustment > 0) {
+                vDouble.SetDouble(_gasAdjustment);
+                feeAmountObject.AddMember("gas_adjustment", vDouble, allocator);
+            }
+            document.AddMember("fee", feeAmountObject, allocator);
+
+            vString.SetString(_memo.c_str(), static_cast<rapidjson::SizeType>(_memo.length()), allocator);
+            document.AddMember("memo", vString, allocator);
 
             //cosmos-sdk/MsgSend
             Value msgValueObject(kObjectType);
-            auto amountObj = getAmountObject(_value->toString(), _value->getUnit().name);
+            auto amountObj = getAmountObject(_value->getUnit().name, _value->toString());
             msgValueObject.AddMember("value", amountObj, allocator);
             auto from =  _sender->toBech32();
             vString.SetString(from.c_str(), static_cast<rapidjson::SizeType>(from.length()), allocator);
@@ -212,6 +213,9 @@ namespace ledger {
             msgArray.PushBack(msgObject, allocator);
 
             document.AddMember("msgs", msgArray, allocator);
+
+            vString.SetString(_sequence.c_str(), static_cast<rapidjson::SizeType>(_sequence.length()), allocator);
+            document.AddMember("sequence", vString, allocator);
 
             StringBuffer buffer;
             Writer<StringBuffer> writer(buffer);

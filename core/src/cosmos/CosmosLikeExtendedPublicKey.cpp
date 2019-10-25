@@ -45,19 +45,21 @@ namespace ledger {
         CosmosLikeExtendedPublicKey::CosmosLikeExtendedPublicKey(const api::Currency& params,
                                                                  const DeterministicPublicKey& key,
                                                                  api::CosmosCurve curve,
+                                                                 api::CosmosBech32Type type,
                                                                  const DerivationPath& path):
-                _currency(params), _key(key), _curve(curve), _path(path)
+                _currency(params), _key(key), _curve(curve), _type(type), _path(path)
         {}
 
         std::shared_ptr<api::CosmosLikeAddress> CosmosLikeExtendedPublicKey::derive(const std::string & path) {
             DerivationPath p(path);
             auto key = _derive(0, p.toVector(), _key);
-            return std::make_shared<CosmosLikeAddress>(_currency, key.getPublicKeyHash160(), std::vector<uint8_t>(), optional<std::string>((_path + p).toString()));
+            auto addressType = _type == api::CosmosBech32Type::PUBLIC_KEY ? api::CosmosBech32Type::ADDRESS : api::CosmosBech32Type::ADDRESS_VAL;
+            return std::make_shared<CosmosLikeAddress>(_currency, key.getPublicKeyHash160(), std::vector<uint8_t>(), addressType, optional<std::string>((_path + p).toString()));
         }
 
         std::shared_ptr<CosmosLikeExtendedPublicKey> CosmosLikeExtendedPublicKey::derive(const DerivationPath &path) {
             auto dpk = _derive(0, path.toVector(), _key);
-            return std::make_shared<CosmosLikeExtendedPublicKey>(_currency, dpk, _curve, _path + path);
+            return std::make_shared<CosmosLikeExtendedPublicKey>(_currency, dpk, _curve, _type, _path + path);
         }
 
         std::vector<uint8_t> CosmosLikeExtendedPublicKey::derivePublicKey(const std::string & path) {
@@ -74,7 +76,7 @@ namespace ledger {
 
         std::string CosmosLikeExtendedPublicKey::toBech32() {
             auto pubKey = getKey().getPublicKey();
-            auto pkBech32 = std::make_shared<CosmosBech32>(true);
+            auto pkBech32 = std::make_shared<CosmosBech32>(_type);
             return pkBech32->encode(pubKey, vector::concat(params().PubKeyPrefix, std::vector<uint8_t>(pubKey.size())));
         }
 
@@ -88,20 +90,22 @@ namespace ledger {
                                              const std::vector<uint8_t>& publicKey,
                                              const std::vector<uint8_t> &chainCode,
                                              const std::string& path,
-                                             api::CosmosCurve curve) {
+                                             api::CosmosCurve curve,
+                                             api::CosmosBech32Type type) {
             auto& params = currency.cosmosLikeNetworkParameters.value();
             DeterministicPublicKey k = CosmosExtendedPublicKey::fromRaw(currency, params, parentPublicKey, publicKey, chainCode, path);
             DerivationPath p(path);
-            return std::make_shared<CosmosLikeExtendedPublicKey>(currency, k, curve, p);
+            return std::make_shared<CosmosLikeExtendedPublicKey>(currency, k, curve, type, p);
         }
 
         std::shared_ptr<CosmosLikeExtendedPublicKey>
         CosmosLikeExtendedPublicKey::fromBase58(const api::Currency& currency,
                                                 const std::string& xpub,
-                                                const Option<std::string>& path) {
+                                                const Option<std::string>& path,
+                                                api::CosmosBech32Type type) {
             auto &params = currency.cosmosLikeNetworkParameters.value();
             DeterministicPublicKey k = CosmosExtendedPublicKey::fromBase58(currency, params, xpub, path);
-            return std::make_shared<ledger::core::CosmosLikeExtendedPublicKey>(currency, k, api::CosmosCurve::SECP256K1, DerivationPath(path.getValueOr("m")));
+            return std::make_shared<ledger::core::CosmosLikeExtendedPublicKey>(currency, k, api::CosmosCurve::SECP256K1, type, DerivationPath(path.getValueOr("m")));
         }
 
         std::shared_ptr<CosmosLikeExtendedPublicKey>
@@ -109,11 +113,12 @@ namespace ledger {
                                                 const std::string& bech32PubKey,
                                                 const Option<std::string>& path) {
             auto &params = currency.cosmosLikeNetworkParameters.value();
-            if (bech32PubKey.find("cosmospub") == std::string::npos) {
+            if (bech32PubKey.find(COSMOS_PUB.hrp) == std::string::npos) {
                 throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Invalid Bech32 public Key: should be prefixed with \"cosmospub\"");
             }
             // From bech32 pubKey to pubKeyHash160
-            auto pkBech32 = std::make_shared<CosmosBech32>(true);
+            auto type = bech32PubKey.find(COSMOS_PUB_VAL.hrp) == std::string::npos ? api::CosmosBech32Type::PUBLIC_KEY : api::CosmosBech32Type::PUBLIC_KEY_VAL;
+            auto pkBech32 = std::make_shared<CosmosBech32>(type);
             auto decodedPk = pkBech32->decode(bech32PubKey);
 
             //Check version
@@ -125,7 +130,7 @@ namespace ledger {
             std::vector<uint8_t> secp256k1PubKey(decodedPk.second.begin() + 5, decodedPk.second.end());
 
             DeterministicPublicKey k(secp256k1PubKey, {}, 0, 0, 0, params.Identifier);
-            return std::make_shared<ledger::core::CosmosLikeExtendedPublicKey>(currency, k, api::CosmosCurve::SECP256K1, DerivationPath(path.getValueOr("m")));
+            return std::make_shared<ledger::core::CosmosLikeExtendedPublicKey>(currency, k, api::CosmosCurve::SECP256K1, type, DerivationPath(path.getValueOr("m")));
         }
 
     }

@@ -145,11 +145,23 @@ TEST(CosmosAddress, AddressFromPubKeys) {
 }
 
 
-TEST(CosmosAddress, CosmosAddress) {
+TEST(CosmosAddress, CosmosAddressFromBech32PubKey) {
     auto expectedResult = "cosmos1x9fzdaykfcc3k4hvflzu4rc6683a7cgkqfhe0s";
     auto pubKey = "cosmospub1addwnpepqtztanmggwrgm92kafpagegck5dp8jc6frxkcpdzrspfafprrlx7gmvhdq6";
     auto pubKeyExt = ledger::core::CosmosLikeExtendedPublicKey::fromBech32(currency, pubKey, Option<std::string>("44'/118'/0'"));
     EXPECT_EQ(pubKeyExt->derive("")->toBech32(), expectedResult);
+}
+
+TEST(CosmosAddress, CosmosAddressFromBech32) {
+    auto expectedResult = "cosmos102hty0jv2s29lyc4u0tv97z9v298e24t3vwtpl";
+    auto address = ledger::core::CosmosLikeAddress::fromBech32(expectedResult, currency, Option<std::string>("44'/118'/0'"));
+    EXPECT_EQ(address->toBech32(), expectedResult);
+}
+
+TEST(CosmosAddress, CosmosValAddressFromBech32) {
+    auto expectedResult = "cosmosvaloper1grgelyng2v6v3t8z87wu3sxgt9m5s03xfytvz7";
+    auto address = ledger::core::CosmosLikeAddress::fromBech32(expectedResult, currency, Option<std::string>("44'/118'/0'"));
+    EXPECT_EQ(address->toBech32(), expectedResult);
 }
 
 TEST(TezosAddress, SecpPubbKey) {
