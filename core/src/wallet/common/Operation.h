@@ -71,7 +71,6 @@ namespace ledger {
             Option<TezosLikeBlockchainExplorerTransaction> tezosTransaction;
             Option<CosmosLikeBlockchainExplorerTransaction> cosmosTransaction;
 
-            Operation() {};
             void refreshUid();
 
             Operation() = default;
