@@ -28,14 +28,12 @@
  *
  */
 
-
 #ifndef LEDGER_CORE_COSMOSLIKEKEYCHAINFACTORY_H
 #define LEDGER_CORE_COSMOSLIKEKEYCHAINFACTORY_H
 
-
 #include <collections/DynamicObject.hpp>
 
-#include <api/ExtendedKeyAccountCreationInfo.hpp>
+#include <api/AccountCreationInfo.hpp>
 #include <api/Currency.hpp>
 
 #include <wallet/cosmos/keychains/CosmosLikeKeychain.h>
@@ -43,20 +41,19 @@
 
 namespace ledger {
     namespace core {
-        class CosmosLikeKeychainFactory {
+	    class CosmosLikeKeychainFactory {
         public:
-            std::shared_ptr<CosmosLikeKeychain> build(int32_t index,
-                                                        const DerivationPath &path,
-                                                        const std::shared_ptr<DynamicObject>& configuration,
-                                                        const api::ExtendedKeyAccountCreationInfo& info,
-                                                        const std::shared_ptr<Preferences>& accountPreferences,
-                                                        const api::Currency& currency);
-            std::shared_ptr<CosmosLikeKeychain> restore(int32_t index,
-                                                          const DerivationPath &path,
-                                                          const std::shared_ptr<DynamicObject>& configuration,
-                                                          const std::string &databaseXpubEntry,
-                                                          const std::shared_ptr<Preferences>& accountPreferences,
-                                                          const api::Currency& currency);
+			std::shared_ptr<CosmosLikeKeychain> build(const DerivationPath& path,
+													  const std::shared_ptr<DynamicObject>& configuration,
+													  const api::AccountCreationInfo& info,
+													  const std::shared_ptr<Preferences>& accountPreferences,
+													  const api::Currency& currency);
+
+			std::shared_ptr<CosmosLikeKeychain> restore(const DerivationPath& path,
+														const std::shared_ptr<DynamicObject>& configuration,
+														const std::string& restoreKey,
+														const std::shared_ptr<Preferences>& accountPreferences,
+														const api::Currency& currency);
         };
     }
 }

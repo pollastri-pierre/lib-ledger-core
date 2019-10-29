@@ -36,54 +36,30 @@
 namespace ledger {
     namespace core {
 
-        std::shared_ptr<CosmosLikeKeychain>
-        CosmosLikeKeychainFactory::build(int32_t index,
-                                         const DerivationPath &path,
-                                         const std::shared_ptr<DynamicObject> &configuration,
-                                         const api::ExtendedKeyAccountCreationInfo &info,
-                                         const std::shared_ptr<Preferences> &accountPreferences,
-                                         const api::Currency &currency) {
-            if (!info.extendedKeys.empty()) {
+		std::shared_ptr<CosmosLikeKeychain>
+		CosmosLikeKeychainFactory::build(const DerivationPath &path,
+										 const std::shared_ptr<DynamicObject> &configuration,
+										 const api::AccountCreationInfo &info,
+										 const std::shared_ptr<Preferences> &accountPreferences,
+										 const api::Currency &currency) {
+			if (!info.publicKeys.empty() && !info.derivations.empty() && info.derivations.front() == path.toString()) {
+				const auto& pubKey = info.publicKeys.front();
+				if (pubKey.size() != 32) {
+					throw make_exception(api::ErrorCode::RUNTIME_ERROR, "Public key must be 256 bits long.");
+				}
+				return std::make_shared<CosmosLikeKeychain>(pubKey, path, currency);
+			}  else {
+				throw make_exception(api::ErrorCode::MISSING_DERIVATION, "Cannot find derivation {}", path.toString());
+			}
+		}
 
-                auto xpub = make_try<std::shared_ptr<CosmosLikeExtendedPublicKey>>(
-                        [&]() -> std::shared_ptr<CosmosLikeExtendedPublicKey> {
-                            return CosmosLikeExtendedPublicKey::fromBech32(
-                                    currency,
-                                    info.extendedKeys[info.extendedKeys.size() - 1],
-                                    Option<std::string>(path.toString()) //TODO COSMOS Whatever
-                            );
-                        });
-
-                if (xpub.isFailure()) {
-                    throw xpub.getFailure();
-                } else {
-                    auto keychain = std::make_shared<CosmosLikeKeychain>(
-                            configuration, currency, xpub.getValue(), accountPreferences
-                    );
-                    return keychain;
-                }
-
-            } else {
-                throw make_exception(api::ErrorCode::MISSING_DERIVATION, "Cannot find derivation {}", path.toString());
-            }
+        std::shared_ptr<CosmosLikeKeychain> CosmosLikeKeychainFactory::restore(const DerivationPath &path,
+																			   const std::shared_ptr<DynamicObject> &configuration,
+																			   const std::string &restoreKey,
+																			   const std::shared_ptr<Preferences> &accountPreferences,
+																			   const api::Currency &currency) {
+			return CosmosLikeKeychain::restore(path, currency, restoreKey);
         }
 
-        std::shared_ptr<CosmosLikeKeychain>
-        CosmosLikeKeychainFactory::restore(int32_t index,
-                                           const DerivationPath &path,
-                                           const std::shared_ptr<DynamicObject> &configuration,
-                                           const std::string &databaseXpubEntry,
-                                           const std::shared_ptr<Preferences> &accountPreferences,
-                                           const api::Currency &currency) {
-
-            return std::make_shared<CosmosLikeKeychain>(configuration,
-                                                        currency,
-                                                        CosmosLikeExtendedPublicKey::fromBech32(
-                                                                currency,
-                                                                databaseXpubEntry,
-                                                                Option<std::string>(path.toString())
-                                                        ),
-                                                        accountPreferences);
-        }
-    }
-}
+	} // namespace core
+} // namespace ledger

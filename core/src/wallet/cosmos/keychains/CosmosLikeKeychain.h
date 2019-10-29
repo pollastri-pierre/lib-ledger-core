@@ -34,56 +34,30 @@
 
 #include <string>
 #include <vector>
-#include <utils/DerivationScheme.hpp>
-#include <utils/Option.hpp>
+#include <utils/DerivationPath.hpp>
 #include <preferences/Preferences.hpp>
-#include <api/Configuration.hpp>
-#include <api/DynamicObject.hpp>
 #include <api/Currency.hpp>
-#include <api/AccountCreationInfo.hpp>
-#include <api/ExtendedKeyAccountCreationInfo.hpp>
-#include <api/CosmosLikeExtendedPublicKey.hpp>
 #include <cosmos/CosmosLikeAddress.h>
-#include <common/CommonAccountBasedKeychain.h>
 
 namespace ledger {
     namespace core {
-        class CosmosLikeKeychain : public CommonAccountBasedKeychain<CosmosLikeAddress, api::CosmosLikeExtendedPublicKey, api::CosmosLikeNetworkParameters> {
+        class CosmosLikeKeychain  {
         public:
-            using Address = std::shared_ptr<CosmosLikeAddress>;
-            CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
-                               const api::Currency &params,
-                               const std::shared_ptr<Preferences> &preferences);
+			using Address = std::shared_ptr<CosmosLikeAddress>;
 
+			CosmosLikeKeychain(const std::vector<uint8_t>& pubKey,
+							   const DerivationPath& path,
+							   const api::Currency& currency);
 
-            CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
-                               const api::Currency &params,
-                               const std::shared_ptr<api::CosmosLikeExtendedPublicKey> &xpub,
-                               const std::shared_ptr<Preferences> &preferences);
+			Address getAddress() const;
+			bool contains(const std::string& address) const;
+			std::string getRestoreKey() const;
+			const std::vector<uint8_t>& getPublicKey() const;
 
-            CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
-                               const api::Currency &params,
-                               const std::string &accountAddress,
-                               const std::shared_ptr<Preferences> &preferences);
-
-            std::shared_ptr<CosmosLikeAddress> derive() override {
-                return std::dynamic_pointer_cast<CosmosLikeAddress>(_xpub->derive(""));
-            };
-
-            Option <std::vector<uint8_t>> getPublicKey(const std::string &address) const override {
-                return Option<std::vector<uint8_t>>(_xpub->derivePublicKey(""));
-            }
-
-            virtual std::shared_ptr<CosmosLikeAddress> getAddress() const override {
-                return std::dynamic_pointer_cast<CosmosLikeAddress>(_xpub->derive(""));
-            }
-
-            std::string getRestoreKey() const override {
-                return _xpub->toBech32();
-            };
-
-
-            const api::CosmosLikeNetworkParameters &getNetworkParameters() const override;
+			static std::shared_ptr<CosmosLikeKeychain> restore(const DerivationPath& path, const api::Currency& currency, const std::string& restoreKey);
+		private:
+			std::vector<uint8_t> _pubKey;
+			Address _address;
         };
     }
 }

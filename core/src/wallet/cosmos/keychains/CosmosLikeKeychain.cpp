@@ -31,45 +31,43 @@
 
 #include "CosmosLikeKeychain.h"
 #include <api/Currency.hpp>
-#include <api/KeychainEngines.hpp>
-#include <cereal/cereal.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/types/set.hpp>
-#include <cosmos/CosmosLikeExtendedPublicKey.h>
+#include <crypto/HASH160.hpp>
+#include <cosmos/bech32/CosmosBech32.h>
 
 namespace ledger {
     namespace core {
-        CosmosLikeKeychain::CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
-                                               const api::Currency &params,
-                                               const std::shared_ptr<Preferences> &preferences)
-        {
-            _preferences = preferences;
-            _configuration = configuration;
-            _currency = params;
-            _fullScheme = DerivationScheme(configuration->getString(api::Configuration::KEYCHAIN_DERIVATION_SCHEME)
-                                                   .value_or("44'/<coin_type>'/<account>'"));
-            _scheme = DerivationScheme(configuration->getString(api::Configuration::KEYCHAIN_DERIVATION_SCHEME)
-                                               .value_or("44'/<coin_type>'/<account>'"))
-                    .getSchemeFrom(DerivationSchemeLevel::ACCOUNT_INDEX).shift();
-        }
+		static HashAlgorithm COSMOS_HASH_ALGO("atom");
 
-        CosmosLikeKeychain::CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
-                                               const api::Currency &params,
-                                               const std::shared_ptr<api::CosmosLikeExtendedPublicKey> &xpub,
-                                               const std::shared_ptr<Preferences> &preferences) : CosmosLikeKeychain(configuration, params, preferences)
-        {
+		CosmosLikeKeychain::CosmosLikeKeychain(const std::vector<uint8_t>& pubbKey,
+											   const DerivationPath& path,
+											   const api::Currency& currency) {
+			_pubKey = pubbKey;
+			_address = std::make_shared<CosmosLikeAddress>(currency, HASH160::hash(pubbKey, COSMOS_HASH_ALGO),
+														   std::vector<uint8_t>(), api::CosmosBech32Type::ADDRESS, optional<std::string>(path.toString()));
+		}
 
-            _xpub = xpub;
-            getAllObservableAddresses(0, 0);
-        }
+		CosmosLikeKeychain::Address CosmosLikeKeychain::getAddress() const {
+			return _address;
+		}
 
-        CosmosLikeKeychain::CosmosLikeKeychain(const std::shared_ptr<api::DynamicObject> &configuration,
-                                               const api::Currency &params,
-                                               const std::string &accountAddress,
-                                               const std::shared_ptr<Preferences> &preferences) : CosmosLikeKeychain(configuration, params, preferences) {}
+		bool CosmosLikeKeychain::contains(const std::string &address) const {
+			return _address->toBech32() == address || _address->toString() == address;
+		}
 
-        const api::CosmosLikeNetworkParameters &CosmosLikeKeychain::getNetworkParameters() const {
-            return _currency.cosmosLikeNetworkParameters.value();
-        }
-    }
+		std::string CosmosLikeKeychain::getRestoreKey() const {
+			return CosmosBech32(api::CosmosBech32Type::PUBLIC_KEY).encode(_pubKey, {});
+		}
+
+		const std::vector<uint8_t>& CosmosLikeKeychain::getPublicKey() const {
+			return _pubKey;
+		}
+
+		std::shared_ptr<CosmosLikeKeychain>
+		CosmosLikeKeychain::restore(const DerivationPath &path,
+									const api::Currency &currency,
+									const std::string &restoreKey) {
+			auto p = CosmosBech32(api::CosmosBech32Type::PUBLIC_KEY).decode(restoreKey);
+			return std::make_shared<CosmosLikeKeychain>(std::get<1>(p), path, currency);
+		}
+	}
 }
