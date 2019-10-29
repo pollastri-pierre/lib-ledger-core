@@ -28,8 +28,6 @@
  *
  */
 #include <gtest/gtest.h>
-#include <ledger/core/utils/hex.h>
-#include <ledger/core/utils/optional.hpp>
 #include <wallet/currencies.hpp>
 #include <utils/hex.h>
 #include <collections/vector.hpp>
@@ -37,7 +35,7 @@
 #include <rapidjson/writer.h>
 #include <utils/Either.hpp>
 #include <bytes/BytesWriter.h>
-#include "CosmosBech32.h"
+#include <cosmos/bech32/CosmosBech32.h>
 #include <crypto/SHA256.hpp>
 using namespace ledger::core::api;
 using namespace ledger::core;
@@ -152,7 +150,7 @@ TEST(CosmosTransaction, Encode) {
     };
 
     BytesWriter tmpWr;
-    auto bech32 = std::make_shared<CosmosBech32>();
+    auto bech32 = std::make_shared<CosmosBech32>(api::CosmosBech32Type::ADDRESS);
 
     auto stdAmount = getCoin("muon", "1000");
 

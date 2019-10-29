@@ -38,6 +38,7 @@
 #include <wallet/cosmos/cosmosNetworks.h>
 #include <collections/DynamicObject.hpp>
 #include <iostream>
+#include <api/CosmosConfigurationDefaults.hpp>
 #include <cosmos/CosmosLikeExtendedPublicKey.h>
 #include <wallet/currencies.hpp>
 #include <wallet/cosmos/transaction_builders/CosmosLikeTransactionBuilder.h>
@@ -58,7 +59,7 @@ TEST_F(CosmosLikeWalletSynchronization, GetAccountWithExplorer) {
 
     auto explorer = std::make_shared<NodeCosmosLikeBlockchainExplorer>(
             pool->getDispatcher()->getSerialExecutionContext("explorer"),
-            pool->getHttpClient("https://stargate.cosmos.network"),
+            pool->getHttpClient(api::CosmosConfigurationDefaults::COSMOS_DEFAULT_API_ENDPOINT),
             COSMOS,
             std::make_shared<DynamicObject>()
             );
@@ -77,7 +78,7 @@ TEST_F(CosmosLikeWalletSynchronization, GetTransactionsWithExplorer) {
 
     auto explorer = std::make_shared<NodeCosmosLikeBlockchainExplorer>(
             pool->getDispatcher()->getSerialExecutionContext("explorer"),
-            pool->getHttpClient("https://stargate.cosmos.network"),
+            pool->getHttpClient(api::CosmosConfigurationDefaults::COSMOS_DEFAULT_API_ENDPOINT),
             COSMOS,
             std::make_shared<DynamicObject>()
     );
@@ -116,7 +117,7 @@ TEST_F(CosmosLikeWalletSynchronization, GeturrentBlockWithExplorer) {
 
     auto explorer = std::make_shared<NodeCosmosLikeBlockchainExplorer>(
             pool->getDispatcher()->getSerialExecutionContext("explorer"),
-            pool->getHttpClient("https://stargate.cosmos.network"),
+            pool->getHttpClient(api::CosmosConfigurationDefaults::COSMOS_DEFAULT_API_ENDPOINT),
             COSMOS,
             std::make_shared<DynamicObject>()
     );

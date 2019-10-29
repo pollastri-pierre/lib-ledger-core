@@ -87,6 +87,8 @@ namespace ledger {
         class CosmosBech32 : public BTCBech32 {
         public:
             explicit CosmosBech32(api::CosmosBech32Type type);
+        
+            std::pair<std::vector<uint8_t>, std::vector<uint8_t>> decode(const std::string& str) override;
         };
     }
 }
