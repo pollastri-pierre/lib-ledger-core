@@ -96,16 +96,17 @@ namespace ledger {
             template <class T>
             void parseTransaction(const T& node,
                     CosmosLikeBlockchainExplorerTransaction& transaction) {
-                transaction.hash = node["txhash"].GetString();
-                if (node.HasMember("height")) {
-                    Block block;
-                    block.height = BigInt::fromString(node["height"].GetString()).toUint64();
-                    //TODO: set rest of block data
-                    transaction.block = block;
+              transaction.hash = node["txhash"].GetString();
+              if (node.HasMember("height")) {
+                Block block;
+                block.height =
+                    BigInt::fromString(node["height"].GetString()).toUint64();
+                // TODO: set rest of block data
+                transaction.block = block;
                 }
                 if (node.HasMember("gas_used"))
                     transaction.gasUsed = Option<BigInt>(BigInt::fromString(node["gas_used"].GetString()));
-                for (const auto& lNode : node["logs"].GetArray()) {
+				for (const auto& lNode : node["logs"].GetArray()) {
                     CosmosLikeBlockchainExplorerLog log;
                     log.success = lNode["success"].GetBool();
                     log.log = lNode["log"].GetString();
@@ -133,13 +134,14 @@ namespace ledger {
                 }
                 const auto& fNode =  vNode["fee"].GetObject();
                 transaction.gasLimit = BigInt::fromString(fNode["gas"].GetString());
-                int index = 0;
-                for (const auto& fNode :fNode["amount"].GetArray()) {
-                    BigInt amount;
-                    parseAmountField(fNode, transaction.messages[index].fees);
-                    index += 1;
-                }
-
+				if (fNode["amount"].IsArray()) {
+					int index = 0;
+					for (const auto &fNode : fNode["amount"].GetArray()) {
+						BigInt amount;
+						parseAmountField(fNode, transaction.messages[index].fees);
+						index += 1;
+					}
+				}
             }
 
         }

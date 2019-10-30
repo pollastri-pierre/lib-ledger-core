@@ -44,9 +44,12 @@ namespace ledger {
 										 const api::Currency &currency) {
 			if (!info.publicKeys.empty() && !info.derivations.empty() && info.derivations.front() == path.toString()) {
 				const auto& pubKey = info.publicKeys.front();
-				if (pubKey.size() != 32) {
-					throw make_exception(api::ErrorCode::RUNTIME_ERROR, "Public key must be 256 bits long.");
-				}
+				if (pubKey.size() != 33) {
+                                  throw make_exception(
+                                      api::ErrorCode::RUNTIME_ERROR,
+                                      "Public key should be compressed (33 "
+                                      "bytes) here {} bytes", pubKey.size());
+                                }
 				return std::make_shared<CosmosLikeKeychain>(pubKey, path, currency);
 			}  else {
 				throw make_exception(api::ErrorCode::MISSING_DERIVATION, "Cannot find derivation {}", path.toString());

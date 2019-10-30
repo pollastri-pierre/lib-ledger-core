@@ -36,14 +36,22 @@
 
 namespace ledger {
     namespace core {
-		static HashAlgorithm COSMOS_HASH_ALGO("atom");
+		static HashAlgorithm COSMOS_HASH_ALGO("cosmos");
 
-		CosmosLikeKeychain::CosmosLikeKeychain(const std::vector<uint8_t>& pubbKey,
+		CosmosLikeKeychain::CosmosLikeKeychain(const std::vector<uint8_t>& pubKey,
 											   const DerivationPath& path,
 											   const api::Currency& currency) {
-			_pubKey = pubbKey;
-			_address = std::make_shared<CosmosLikeAddress>(currency, HASH160::hash(pubbKey, COSMOS_HASH_ALGO),
-														   std::vector<uint8_t>(), api::CosmosBech32Type::ADDRESS, optional<std::string>(path.toString()));
+			_pubKey = pubKey;
+			std::vector<uint8_t> payload{0xEB, 0x5A, 0xE9, 0x87,
+										 (uint8_t)_pubKey.size()};
+			payload.insert(payload.end(), _pubKey.begin(),
+						   _pubKey.end());
+			auto hash160 = HASH160::hash(_pubKey, COSMOS_HASH_ALGO);
+			_address =
+				std::make_shared<CosmosLikeAddress>(
+													currency, hash160, std::vector<uint8_t>(),
+													api::CosmosBech32Type::ADDRESS,
+													optional<std::string>(path.toString()));
 		}
 
 		CosmosLikeKeychain::Address CosmosLikeKeychain::getAddress() const {
@@ -55,7 +63,9 @@ namespace ledger {
 		}
 
 		std::string CosmosLikeKeychain::getRestoreKey() const {
-			return CosmosBech32(api::CosmosBech32Type::PUBLIC_KEY).encode(_pubKey, {});
+			std::vector<uint8_t> payload {0xEB, 0x5A, 0xE9, 0x87, (uint8_t)_pubKey.size()};
+			payload.insert(payload.end(), _pubKey.begin(), _pubKey.end());
+			return CosmosBech32(api::CosmosBech32Type::PUBLIC_KEY).encode(payload, {});
 		}
 
 		const std::vector<uint8_t>& CosmosLikeKeychain::getPublicKey() const {
@@ -66,8 +76,10 @@ namespace ledger {
 		CosmosLikeKeychain::restore(const DerivationPath &path,
 									const api::Currency &currency,
 									const std::string &restoreKey) {
-			auto p = CosmosBech32(api::CosmosBech32Type::PUBLIC_KEY).decode(restoreKey);
-			return std::make_shared<CosmosLikeKeychain>(std::get<1>(p), path, currency);
+			auto p = CosmosBech32(api::CosmosBech32Type::PUBLIC_KEY)
+				.decode(restoreKey);
+			std::vector<uint8_t> pubKey(std::get<1>(p).begin() + 5, std::get<1>(p).end());
+			return std::make_shared<CosmosLikeKeychain>(pubKey, path, currency);
 		}
 	}
 }
