@@ -15,6 +15,7 @@
 
 namespace ledger { namespace core { namespace api {
 
+class CosmosLikeMessage;
 class CosmosLikeTransaction;
 
 /**Class representing a Cosmos Operation */
@@ -27,6 +28,12 @@ public:
      *@return CosmosLikeTransaction object
      */
     virtual std::shared_ptr<CosmosLikeTransaction> getTransaction() = 0;
+
+    /**
+     * Get message which created this operation
+     * @return CosmosLikeMessage object
+     */
+    virtual std::shared_ptr<CosmosLikeMessage> getMessage() = 0;
 };
 
 } } }  // namespace ledger::core::api

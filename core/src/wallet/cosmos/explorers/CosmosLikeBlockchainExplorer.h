@@ -48,6 +48,7 @@ BB *
 #include <wallet/common/Block.h>
 #include <wallet/common/explorers/AbstractBlockchainExplorer.h>
 #include <wallet/cosmos/keychains/CosmosLikeKeychain.h>
+
 namespace ledger {
     namespace core {
 

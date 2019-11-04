@@ -42,9 +42,10 @@ namespace ledger {
         class CosmosLikeOperation : public api::CosmosLikeOperation {
         public:
             CosmosLikeOperation(const std::shared_ptr<OperationApi>& baseOp);
-            std::shared_ptr<api::CosmosLikeTransaction> getTransaction();
+            virtual std::shared_ptr<api::CosmosLikeTransaction> getTransaction() override;
+            virtual std::shared_ptr<api::CosmosLikeMessage> getMessage() override;
 
-        private:
+          private:
             std::shared_ptr<api::CosmosLikeTransaction> _transaction;
         };
 

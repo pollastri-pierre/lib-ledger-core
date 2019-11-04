@@ -38,8 +38,13 @@ namespace ledger {
         CosmosLikeOperation::CosmosLikeOperation(const std::shared_ptr<OperationApi>& baseOp) {
             _transaction = std::make_shared<CosmosLikeTransactionApi>(baseOp);
         }
-        std::shared_ptr<api::CosmosLikeTransaction> CosmosLikeOperation::getTransaction() {
+
+		std::shared_ptr<api::CosmosLikeTransaction> CosmosLikeOperation::getTransaction() {
             return _transaction;
         }
+
+		std::shared_ptr<api::CosmosLikeMessage> CosmosLikeOperation::getMessage() {
+			throw make_exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "CosmosLikeOperation::getMessage");
+		}
     }
 }
