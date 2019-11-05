@@ -31,8 +31,18 @@ public:
 
     virtual CosmosLikeMsgType getMessageType() = 0;
 
+    /**
+     * Wrap the given CosmosLikeMsgSend into a CosmosLikeMessage
+     * @param msg The message you need to wrap.
+     * @return CosmosLikeMessage A wrapped message.
+     */
     static std::shared_ptr<CosmosLikeMessage> wrapMsgSend(const CosmosLikeMsgSend & msg);
 
+    /**
+     * Unwrap a message to a CosmosLikeMsgSend
+     * @param msg The message to unwrap
+     * @return CosmosLikeMsgDelegate the unwrapped message
+     */
     static CosmosLikeMsgSend unwrapMsgSend(const std::shared_ptr<CosmosLikeMessage> & msg);
 
     /**

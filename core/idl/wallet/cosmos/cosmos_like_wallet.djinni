@@ -2,36 +2,66 @@
 @import "../amount.djinni"
 @import "../../cosmos/addresses.djinni"
 
-CosmosLikeMsgSend = record {
+CosmosLikeAmount = record {
+    amount: string;
+    denom: string;
+}
 
+CosmosLikeVoteOption = enum {
+    Yes;
+    No;
+    NoWithVeto;
+    Abstain;
+}
+
+CosmosLikeMsgSend = record {
+    fromAddress: string;
+    toAddres: string;
+    amounts: list<CosmosLikeAmount>;
 }
 
 CosmosLikeMsgDelegate = record {
-
+    delegatorAddress: string;
+    validatorAddress: string;
+    amount: CosmosLikeAmount;
 }
 
 CosmosLikeMsgUndelegate = record {
-
+    delegatorAddress: string;
+    validatorAddress: string;
+    amount: CosmosLikeAmount;
 }
 
 CosmosLikeMsgRedelegate = record {
-
+    delegatorAddress: string;
+    validatorSourceAddress: string;
+    validatorDestinationAddress: string;
+    amount: CosmosLikeAmount;
 }
 
 CosmosLikeMsgSubmitProposal = record {
-
+    contentType: string;
+    contentTitle: string;
+    contentDescription: string;
+    proposer: string;
+    initialDeposit: list<CosmosLikeAmount>;
 }
 
 CosmosLikeMsgVote = record {
-
+    voter: string;
+    proposalId: string;
+    option: CosmosLikeVoteOption;
 }
 
 CosmosLikeMsgDeposit = record {
-
+    depositor: string;
+    proposalId: string;
+    amount: CosmosLikeAmount;
 }
 
 CosmosLikeMsgWithdrawDelegationReward = record {
-
+    delegatorAddress: string;
+    validatorAddress: string;
 }
 
 CosmosLikeMsgType = enum {
@@ -48,8 +78,13 @@ CosmosLikeMsgType = enum {
 CosmosLikeMessage = interface +c {
     getMessageType(): CosmosLikeMsgType;
 
-
+    # Wrap the given CosmosLikeMsgSend into a CosmosLikeMessage
+    # @param msg The message you need to wrap.
+    # @return CosmosLikeMessage A wrapped message.
     static wrapMsgSend(msg: CosmosLikeMsgSend): CosmosLikeMessage;
+    # Unwrap a message to a CosmosLikeMsgSend
+    # @param msg The message to unwrap
+    # @return CosmosLikeMsgDelegate the unwrapped message
     static unwrapMsgSend(msg: CosmosLikeMessage): CosmosLikeMsgSend;
 
 

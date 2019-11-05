@@ -4,21 +4,50 @@
 #ifndef DJINNI_GENERATED_COSMOSLIKEMSGVOTE_HPP
 #define DJINNI_GENERATED_COSMOSLIKEMSGVOTE_HPP
 
+#include "CosmosLikeVoteOption.hpp"
 #include <iostream>
+#include <string>
 #include <utility>
 
 namespace ledger { namespace core { namespace api {
 
 struct CosmosLikeMsgVote final {
+    std::string voter;
+    std::string proposalId;
+    CosmosLikeVoteOption option;
+
+    CosmosLikeMsgVote(std::string voter_,
+                      std::string proposalId_,
+                      CosmosLikeVoteOption option_)
+    : voter(std::move(voter_))
+    , proposalId(std::move(proposalId_))
+    , option(std::move(option_))
+    {}
+
+    CosmosLikeMsgVote(const CosmosLikeMsgVote& cpy) {
+       this->voter = cpy.voter;
+       this->proposalId = cpy.proposalId;
+       this->option = cpy.option;
+    }
+
+    CosmosLikeMsgVote() = default;
+
+
+    CosmosLikeMsgVote& operator=(const CosmosLikeMsgVote& cpy) {
+       this->voter = cpy.voter;
+       this->proposalId = cpy.proposalId;
+       this->option = cpy.option;
+       return *this;
+    }
 
     template <class Archive>
     void load(Archive& archive) {
-        archive();
+        archive(voter, proposalId, option);
     }
 
     template <class Archive>
     void save(Archive& archive) const {
-        archive();
+        archive(voter, proposalId, option);
     }
 };
 

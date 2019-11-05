@@ -4,21 +4,51 @@
 #ifndef DJINNI_GENERATED_COSMOSLIKEMSGSEND_HPP
 #define DJINNI_GENERATED_COSMOSLIKEMSGSEND_HPP
 
+#include "CosmosLikeAmount.hpp"
 #include <iostream>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace ledger { namespace core { namespace api {
 
 struct CosmosLikeMsgSend final {
+    std::string fromAddress;
+    std::string toAddres;
+    std::vector<CosmosLikeAmount> amounts;
+
+    CosmosLikeMsgSend(std::string fromAddress_,
+                      std::string toAddres_,
+                      std::vector<CosmosLikeAmount> amounts_)
+    : fromAddress(std::move(fromAddress_))
+    , toAddres(std::move(toAddres_))
+    , amounts(std::move(amounts_))
+    {}
+
+    CosmosLikeMsgSend(const CosmosLikeMsgSend& cpy) {
+       this->fromAddress = cpy.fromAddress;
+       this->toAddres = cpy.toAddres;
+       this->amounts = cpy.amounts;
+    }
+
+    CosmosLikeMsgSend() = default;
+
+
+    CosmosLikeMsgSend& operator=(const CosmosLikeMsgSend& cpy) {
+       this->fromAddress = cpy.fromAddress;
+       this->toAddres = cpy.toAddres;
+       this->amounts = cpy.amounts;
+       return *this;
+    }
 
     template <class Archive>
     void load(Archive& archive) {
-        archive();
+        archive(fromAddress, toAddres, amounts);
     }
 
     template <class Archive>
     void save(Archive& archive) const {
-        archive();
+        archive(fromAddress, toAddres, amounts);
     }
 };
 
