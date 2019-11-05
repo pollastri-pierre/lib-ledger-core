@@ -731,7 +731,7 @@ namespace ledger {
                     "log TEXT,"
                     "success INTEGER,"
                     "msg_index INTEGER NOT NULL"
-                    ");";
+                    ")";
 
             sql << "CREATE TABLE cosmos_operations("
                     "uid VARCHAR(255) PRIMARY KEY NOT NULL REFERENCES operations(uid) ON DELETE CASCADE,"
@@ -750,6 +750,79 @@ namespace ledger {
             sql << "DROP TABLE cosmos_currencies";
 
             sql << "DROP TABLE cosmos_messages";
+        }
+
+        template <> void migrate<18>(soci::session& sql) {
+            sql << "ALTER TABLE cosmos_messages "
+                   "DROP COLUMN amount_value,"
+                   "DROP COLUMN fees";
+
+            sql << "ALTER TABLE cosmos_messages "
+                   "ALTER COLUMN from_address VARCHAR(255),"
+                   "ALTER COLUMN to_address VARCHAR(255)";
+
+            sql << "ALTER TABLE cosmos_messages ADD "
+                   // MsgDelegate
+                   "delegator_address VARCHAR(255),"
+                   "validator_address VARCHAR(255),"
+                   // MsgRedelegate
+                   "validator_src_address VARCHAR(255),"
+                   "validator_dst_address VARCHAR(255),"
+                   // MsgSubmitProposal
+                   "content_title VARCHAR(255),"
+                   "content_description VARCHAR(255),"
+                   "proposer VARCHAR(255),"
+                   // MsgVote
+                   "voter VARCHAR(255),"
+                   "proposal_id INTEGER,"  
+                   // MsgDeposit
+                   "depositor VARCHAR(255)";
+
+            sql << "ALTER TABLE cosmos_transactions "
+                   "DROP COLUMN gas_price,"
+                   "DROP COLUMN gas_limit,"
+                   "DROP COLUMN gas_used";
+
+            sql << "ALTER TABLE cosmos_transactions ADD gas INTEGER";
+
+            sql << "CREATE TABLE cosmos_amounts("
+                   "transaction_uid VARCHAR(255) NOT NULL "
+                   "REFERENCES cosmos_transactions(transaction_uid) ON DELETE CASCADE ON UPDATE CASCADE,"
+                   "message_uid VARCHAR(255) "
+                   "REFERENCES cosmos_messages(uid) ON DELETE CASCADE ON UPDATE CASCADE,"
+                   "amount VARCHAR(255) NOT NULL,"
+                   "denom VARCHAR(255) NOT NULL)";
+        }
+
+        template <> void rollback<18>(soci::session& sql) {
+            sql << "DROP TABLE cosmos_amounts";
+
+            sql << "ALTER TABLE cosmos_transactions DROP COLUMN gas";
+
+            sql << "ALTER TABLE cosmos_transactions ADD "
+                   "gas_price VARCHAR(255) NOT NULL,"
+                   "gas_limit VARCHAR(255) NOT NULL,"
+                   "gas_used VARCHAR(255)";
+
+            sql << "ALTER TABLE cosmos_messages "
+                   "DROP COLUMN depositor,"
+                   "DROP COLUMN proposal_id,"
+                   "DROP COLUMN voter,"
+                   "DROP COLUMN proposer,"
+                   "DROP COLUMN content_description,"
+                   "DROP COLUMN content_title,"
+                   "DROP COLUMN validator_dst_address,"
+                   "DROP COLUMN validator_src_address,"
+                   "DROP COLUMN validator_address,"
+                   "DROP COLUMN delegator_address";
+
+            sql << "ALTER TABLE cosmos_messages "
+                   "ALTER COLUMN from_address VARCHAR(255) NOT NULL,"
+                   "ALTER COLUMN to_address VARCHAR(255) NOT NULL";
+
+            sql << "ALTER TABLE cosmos_messages ADD "
+                   "amount_value VARCHAR(255) NOT NULL,"
+                   "fees VARCHAR(255) NOT NULL";
         }
     }
 }
