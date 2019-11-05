@@ -39,6 +39,28 @@ namespace ledger {
 
 		}
 
-        api::CosmosLikeMessageType getMessageType();
+		api::CosmosLikeMsgType CosmosLikeMessage::getMessageType() {
+			auto msgType = _content->get<std::string>("type").value_or("");
+			if (msgType == "cosmos-sdk/MsgSend") {
+				return api::CosmosLikeMsgType::MSGSEND;
+			} else if (msgType == "cosmos-sdk/MsgDelegate") {
+				return api::CosmosLikeMsgType::MSGDELEGATE;
+			} else if (msgType == "cosmos-sdk/MsgUndelegate") {
+				return api::CosmosLikeMsgType::MSGDELEGATE;
+			} else if (msgType == "cosmos-sdk/MsgBeginRedelegate") {
+				return api::CosmosLikeMsgType::MSGREDELEGATE;
+			} else if (msgType == "cosmos-sdk/MsgSubmitProposal") {
+				return api::CosmosLikeMsgType::MSGSUBMITPROPOSAL;
+			} else if (msgType == "cosmos-sdk/MsgVote") {
+				return api::CosmosLikeMsgType::MSGVOTE;
+			} else if (msgType == "cosmos-sdk/MsgDeposit") {
+				return api::CosmosLikeMsgType::MSGDEPOSIT;
+			} else if (msgType == "cosmos-sdk/MsgSend") {
+				return api::CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD;
+			}  else {
+				return api::CosmosLikeMsgType::UNKNOWN;
+			}
+		}
+
 	}
 }

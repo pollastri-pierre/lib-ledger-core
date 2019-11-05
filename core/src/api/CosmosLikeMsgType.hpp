@@ -26,6 +26,7 @@ enum class CosmosLikeMsgType : int {
     MSGVOTE,
     MSGDEPOSIT,
     MSGWITHDRAWDELEGATIONREWARD,
+    UNKNOWN,
 };
 LIBCORE_EXPORT  std::string to_string(const CosmosLikeMsgType& cosmosLikeMsgType);
 LIBCORE_EXPORT  std::ostream &operator<<(std::ostream &os, const CosmosLikeMsgType &o);

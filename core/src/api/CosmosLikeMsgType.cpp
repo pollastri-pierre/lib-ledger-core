@@ -16,6 +16,7 @@ std::string to_string(const CosmosLikeMsgType& cosmosLikeMsgType) {
         case CosmosLikeMsgType::MSGVOTE: return "MSGVOTE";
         case CosmosLikeMsgType::MSGDEPOSIT: return "MSGDEPOSIT";
         case CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD: return "MSGWITHDRAWDELEGATIONREWARD";
+        case CosmosLikeMsgType::UNKNOWN: return "UNKNOWN";
     };
 };
 template <>
@@ -27,7 +28,8 @@ CosmosLikeMsgType from_string(const std::string& cosmosLikeMsgType) {
     else if (cosmosLikeMsgType == "MSGSUBMITPROPOSAL") return CosmosLikeMsgType::MSGSUBMITPROPOSAL;
     else if (cosmosLikeMsgType == "MSGVOTE") return CosmosLikeMsgType::MSGVOTE;
     else if (cosmosLikeMsgType == "MSGDEPOSIT") return CosmosLikeMsgType::MSGDEPOSIT;
-    else return CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD;
+    else if (cosmosLikeMsgType == "MSGWITHDRAWDELEGATIONREWARD") return CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD;
+    else return CosmosLikeMsgType::UNKNOWN;
 };
 
 std::ostream &operator<<(std::ostream &os, const CosmosLikeMsgType &o)
@@ -41,6 +43,7 @@ std::ostream &operator<<(std::ostream &os, const CosmosLikeMsgType &o)
         case CosmosLikeMsgType::MSGVOTE:  return os << "MSGVOTE";
         case CosmosLikeMsgType::MSGDEPOSIT:  return os << "MSGDEPOSIT";
         case CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD:  return os << "MSGWITHDRAWDELEGATIONREWARD";
+        case CosmosLikeMsgType::UNKNOWN:  return os << "UNKNOWN";
     }
 }
 
