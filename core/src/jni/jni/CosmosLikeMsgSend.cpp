@@ -15,7 +15,7 @@ auto CosmosLikeMsgSend::fromCpp(JNIEnv* jniEnv, const CppType& c) -> ::djinni::L
     const auto& data = ::djinni::JniClass<CosmosLikeMsgSend>::get();
     auto r = ::djinni::LocalRef<JniType>{jniEnv->NewObject(data.clazz.get(), data.jconstructor,
                                                            ::djinni::get(::djinni::String::fromCpp(jniEnv, c.fromAddress)),
-                                                           ::djinni::get(::djinni::String::fromCpp(jniEnv, c.toAddres)),
+                                                           ::djinni::get(::djinni::String::fromCpp(jniEnv, c.toAddress)),
                                                            ::djinni::get(::djinni::List<::djinni_generated::CosmosLikeAmount>::fromCpp(jniEnv, c.amounts)))};
     ::djinni::jniExceptionCheck(jniEnv);
     return r;
@@ -26,7 +26,7 @@ auto CosmosLikeMsgSend::toCpp(JNIEnv* jniEnv, JniType j) -> CppType {
     assert(j != nullptr);
     const auto& data = ::djinni::JniClass<CosmosLikeMsgSend>::get();
     return {::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_fromAddress)),
-            ::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_toAddres)),
+            ::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_toAddress)),
             ::djinni::List<::djinni_generated::CosmosLikeAmount>::toCpp(jniEnv, jniEnv->GetObjectField(j, data.field_amounts))};
 }
 

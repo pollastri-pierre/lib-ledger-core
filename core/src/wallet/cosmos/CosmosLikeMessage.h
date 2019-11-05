@@ -46,7 +46,9 @@
 
 namespace ledger {
 	namespace core {
-		class CosmosLikeMessage : api::CosmosLikeMessage {
+		class CosmosLikeMessage : public api::CosmosLikeMessage {
+			friend api::CosmosLikeMessage;
+			
 		public:
 			CosmosLikeMessage(const std::shared_ptr<DynamicObject>& content);
 			virtual api::CosmosLikeMsgType getMessageType() override;

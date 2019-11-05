@@ -16,7 +16,7 @@ CosmosLikeVoteOption = enum {
 
 CosmosLikeMsgSend = record {
     fromAddress: string;
-    toAddres: string;
+    toAddress: string;
     amounts: list<CosmosLikeAmount>;
 }
 

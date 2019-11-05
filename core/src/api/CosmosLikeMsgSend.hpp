@@ -14,20 +14,20 @@ namespace ledger { namespace core { namespace api {
 
 struct CosmosLikeMsgSend final {
     std::string fromAddress;
-    std::string toAddres;
+    std::string toAddress;
     std::vector<CosmosLikeAmount> amounts;
 
     CosmosLikeMsgSend(std::string fromAddress_,
-                      std::string toAddres_,
+                      std::string toAddress_,
                       std::vector<CosmosLikeAmount> amounts_)
     : fromAddress(std::move(fromAddress_))
-    , toAddres(std::move(toAddres_))
+    , toAddress(std::move(toAddress_))
     , amounts(std::move(amounts_))
     {}
 
     CosmosLikeMsgSend(const CosmosLikeMsgSend& cpy) {
        this->fromAddress = cpy.fromAddress;
-       this->toAddres = cpy.toAddres;
+       this->toAddress = cpy.toAddress;
        this->amounts = cpy.amounts;
     }
 
@@ -36,19 +36,19 @@ struct CosmosLikeMsgSend final {
 
     CosmosLikeMsgSend& operator=(const CosmosLikeMsgSend& cpy) {
        this->fromAddress = cpy.fromAddress;
-       this->toAddres = cpy.toAddres;
+       this->toAddress = cpy.toAddress;
        this->amounts = cpy.amounts;
        return *this;
     }
 
     template <class Archive>
     void load(Archive& archive) {
-        archive(fromAddress, toAddres, amounts);
+        archive(fromAddress, toAddress, amounts);
     }
 
     template <class Archive>
     void save(Archive& archive) const {
-        archive(fromAddress, toAddres, amounts);
+        archive(fromAddress, toAddress, amounts);
     }
 };
 
