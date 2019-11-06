@@ -5,6 +5,7 @@
 #define DJINNI_GENERATED_COSMOSLIKEMSGSUBMITPROPOSAL_HPP
 
 #include "CosmosLikeAmount.hpp"
+#include "CosmosLikeContent.hpp"
 #include <iostream>
 #include <string>
 #include <utility>
@@ -13,28 +14,20 @@
 namespace ledger { namespace core { namespace api {
 
 struct CosmosLikeMsgSubmitProposal final {
-    std::string contentType;
-    std::string contentTitle;
-    std::string contentDescription;
+    CosmosLikeContent content;
     std::string proposer;
     std::vector<CosmosLikeAmount> initialDeposit;
 
-    CosmosLikeMsgSubmitProposal(std::string contentType_,
-                                std::string contentTitle_,
-                                std::string contentDescription_,
+    CosmosLikeMsgSubmitProposal(CosmosLikeContent content_,
                                 std::string proposer_,
                                 std::vector<CosmosLikeAmount> initialDeposit_)
-    : contentType(std::move(contentType_))
-    , contentTitle(std::move(contentTitle_))
-    , contentDescription(std::move(contentDescription_))
+    : content(std::move(content_))
     , proposer(std::move(proposer_))
     , initialDeposit(std::move(initialDeposit_))
     {}
 
     CosmosLikeMsgSubmitProposal(const CosmosLikeMsgSubmitProposal& cpy) {
-       this->contentType = cpy.contentType;
-       this->contentTitle = cpy.contentTitle;
-       this->contentDescription = cpy.contentDescription;
+       this->content = cpy.content;
        this->proposer = cpy.proposer;
        this->initialDeposit = cpy.initialDeposit;
     }
@@ -43,9 +36,7 @@ struct CosmosLikeMsgSubmitProposal final {
 
 
     CosmosLikeMsgSubmitProposal& operator=(const CosmosLikeMsgSubmitProposal& cpy) {
-       this->contentType = cpy.contentType;
-       this->contentTitle = cpy.contentTitle;
-       this->contentDescription = cpy.contentDescription;
+       this->content = cpy.content;
        this->proposer = cpy.proposer;
        this->initialDeposit = cpy.initialDeposit;
        return *this;
@@ -53,12 +44,12 @@ struct CosmosLikeMsgSubmitProposal final {
 
     template <class Archive>
     void load(Archive& archive) {
-        archive(contentType, contentTitle, contentDescription, proposer, initialDeposit);
+        archive(content, proposer, initialDeposit);
     }
 
     template <class Archive>
     void save(Archive& archive) const {
-        archive(contentType, contentTitle, contentDescription, proposer, initialDeposit);
+        archive(content, proposer, initialDeposit);
     }
 };
 

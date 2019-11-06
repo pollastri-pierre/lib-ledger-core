@@ -8,26 +8,27 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace ledger { namespace core { namespace api {
 
 struct CosmosLikeMsgDeposit final {
     std::string depositor;
     std::string proposalId;
-    CosmosLikeAmount amount;
+    std::vector<CosmosLikeAmount> amounts;
 
     CosmosLikeMsgDeposit(std::string depositor_,
                          std::string proposalId_,
-                         CosmosLikeAmount amount_)
+                         std::vector<CosmosLikeAmount> amounts_)
     : depositor(std::move(depositor_))
     , proposalId(std::move(proposalId_))
-    , amount(std::move(amount_))
+    , amounts(std::move(amounts_))
     {}
 
     CosmosLikeMsgDeposit(const CosmosLikeMsgDeposit& cpy) {
        this->depositor = cpy.depositor;
        this->proposalId = cpy.proposalId;
-       this->amount = cpy.amount;
+       this->amounts = cpy.amounts;
     }
 
     CosmosLikeMsgDeposit() = default;
@@ -36,18 +37,18 @@ struct CosmosLikeMsgDeposit final {
     CosmosLikeMsgDeposit& operator=(const CosmosLikeMsgDeposit& cpy) {
        this->depositor = cpy.depositor;
        this->proposalId = cpy.proposalId;
-       this->amount = cpy.amount;
+       this->amounts = cpy.amounts;
        return *this;
     }
 
     template <class Archive>
     void load(Archive& archive) {
-        archive(depositor, proposalId, amount);
+        archive(depositor, proposalId, amounts);
     }
 
     template <class Archive>
     void save(Archive& archive) const {
-        archive(depositor, proposalId, amount);
+        archive(depositor, proposalId, amounts);
     }
 };
 

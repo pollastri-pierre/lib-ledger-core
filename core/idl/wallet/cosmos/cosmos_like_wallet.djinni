@@ -7,6 +7,12 @@ CosmosLikeAmount = record {
     denom: string;
 }
 
+CosmosLikeContent = record {
+    type: string;
+    title: string;
+    description: string;
+}
+
 CosmosLikeVoteOption = enum {
     Yes;
     No;
@@ -40,9 +46,7 @@ CosmosLikeMsgRedelegate = record {
 }
 
 CosmosLikeMsgSubmitProposal = record {
-    contentType: string;
-    contentTitle: string;
-    contentDescription: string;
+    content: CosmosLikeContent;
     proposer: string;
     initialDeposit: list<CosmosLikeAmount>;
 }
@@ -56,7 +60,7 @@ CosmosLikeMsgVote = record {
 CosmosLikeMsgDeposit = record {
     depositor: string;
     proposalId: string;
-    amount: CosmosLikeAmount;
+    amounts: list<CosmosLikeAmount>;
 }
 
 CosmosLikeMsgWithdrawDelegationReward = record {

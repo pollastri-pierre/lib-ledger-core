@@ -33,6 +33,7 @@
 #include <api/CosmosLikeMessage.hpp>
 #include <api/CosmosLikeMsgType.hpp>
 #include <api/CosmosLikeAmount.hpp>
+#include <api/CosmosLikeContent.hpp>
 #include <api/CosmosLikeVoteOption.hpp>
 #include <api/CosmosLikeMsgSend.hpp>
 #include <api/CosmosLikeMsgDelegate.hpp>

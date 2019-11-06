@@ -3,6 +3,7 @@
 
 #include "CosmosLikeMsgSubmitProposal.hpp"  // my header
 #include "CosmosLikeAmount.hpp"
+#include "CosmosLikeContent.hpp"
 #include "Marshal.hpp"
 
 namespace djinni_generated {
@@ -14,9 +15,7 @@ CosmosLikeMsgSubmitProposal::~CosmosLikeMsgSubmitProposal() = default;
 auto CosmosLikeMsgSubmitProposal::fromCpp(JNIEnv* jniEnv, const CppType& c) -> ::djinni::LocalRef<JniType> {
     const auto& data = ::djinni::JniClass<CosmosLikeMsgSubmitProposal>::get();
     auto r = ::djinni::LocalRef<JniType>{jniEnv->NewObject(data.clazz.get(), data.jconstructor,
-                                                           ::djinni::get(::djinni::String::fromCpp(jniEnv, c.contentType)),
-                                                           ::djinni::get(::djinni::String::fromCpp(jniEnv, c.contentTitle)),
-                                                           ::djinni::get(::djinni::String::fromCpp(jniEnv, c.contentDescription)),
+                                                           ::djinni::get(::djinni_generated::CosmosLikeContent::fromCpp(jniEnv, c.content)),
                                                            ::djinni::get(::djinni::String::fromCpp(jniEnv, c.proposer)),
                                                            ::djinni::get(::djinni::List<::djinni_generated::CosmosLikeAmount>::fromCpp(jniEnv, c.initialDeposit)))};
     ::djinni::jniExceptionCheck(jniEnv);
@@ -24,12 +23,10 @@ auto CosmosLikeMsgSubmitProposal::fromCpp(JNIEnv* jniEnv, const CppType& c) -> :
 }
 
 auto CosmosLikeMsgSubmitProposal::toCpp(JNIEnv* jniEnv, JniType j) -> CppType {
-    ::djinni::JniLocalScope jscope(jniEnv, 6);
+    ::djinni::JniLocalScope jscope(jniEnv, 4);
     assert(j != nullptr);
     const auto& data = ::djinni::JniClass<CosmosLikeMsgSubmitProposal>::get();
-    return {::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_contentType)),
-            ::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_contentTitle)),
-            ::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_contentDescription)),
+    return {::djinni_generated::CosmosLikeContent::toCpp(jniEnv, jniEnv->GetObjectField(j, data.field_content)),
             ::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_proposer)),
             ::djinni::List<::djinni_generated::CosmosLikeAmount>::toCpp(jniEnv, jniEnv->GetObjectField(j, data.field_initialDeposit))};
 }
