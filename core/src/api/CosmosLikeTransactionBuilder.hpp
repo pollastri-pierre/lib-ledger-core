@@ -17,6 +17,7 @@
 namespace ledger { namespace core { namespace api {
 
 class Amount;
+class CosmosLikeMessage;
 class CosmosLikeTransaction;
 class CosmosLikeTransactionCallback;
 struct Currency;
@@ -26,29 +27,35 @@ public:
     virtual ~CosmosLikeTransactionBuilder() {}
 
     /**
-     * Send funds to the given address. This method can be called multiple times to send to multiple addresses.
-     * @param amount The value to send
-     * @param address Address of the recipient
-     * @return A reference on the same builder in order to chain calls.
+     * Set memo
+     * @param memo the memo to set
      */
-    virtual std::shared_ptr<CosmosLikeTransactionBuilder> sendToAddress(const std::shared_ptr<Amount> & amount, const std::string & address) = 0;
+    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setMemo(const std::string & memo) = 0;
 
     /**
-     * Send all available funds to the given address.
-     * @param address Address of the recipient
-     * @return A reference on the same builder in order to chain calls.
+     * Set sequence
+     * @param sequence The sequence to set
      */
-    virtual std::shared_ptr<CosmosLikeTransactionBuilder> wipeToAddress(const std::string & address) = 0;
+    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setSequence(const std::string & sequence) = 0;
 
     /**
-     * Set gas limit the originator is not willing to exceed.
-     * @return A reference on the same builder in order to chain calls.
+     * Add a new message in the internal range of messages
+     * @param msg a new message
      */
-    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setGasLimit(const std::shared_ptr<Amount> & gasLimit) = 0;
+    virtual std::shared_ptr<CosmosLikeTransactionBuilder> addMessage(const std::shared_ptr<CosmosLikeMessage> & msg) = 0;
 
-    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setGasPrice(const std::shared_ptr<Amount> & gasPrice) = 0;
+    /**
+     * Set gas price
+     * @param gas The gas to set
+     */
+    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setGas(const std::shared_ptr<Amount> & gas) = 0;
 
-    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setGasAdjustment(double gasAdjustment) = 0;
+    /**
+     * Set fee
+     * Here the fee represents the gas price multiplied by the gas used
+     * @param fee The fee to set
+     */
+    virtual std::shared_ptr<CosmosLikeTransactionBuilder> setFee(const std::shared_ptr<Amount> & fee) = 0;
 
     /** Build a transaction from the given builder parameters. */
     virtual void build(const std::shared_ptr<CosmosLikeTransactionCallback> & callback) = 0;

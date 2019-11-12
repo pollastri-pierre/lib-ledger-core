@@ -81,7 +81,13 @@ CosmosLikeMsgType = enum {
 }
 
 CosmosLikeMessage = interface +c {
-    getMessageType(): CosmosLikeMsgType;
+    # Get type
+    # @return CosmosLikeMsgType a message type
+    const getMessageType(): CosmosLikeMsgType;
+
+    # Get type
+    # @return string a message type in string format
+    const getRawMessageType(): string;
 
     # Wrap the given CosmosLikeMsgSend into a CosmosLikeMessage
     # @param msg The message you need to wrap.
@@ -160,28 +166,24 @@ CosmosLikeMessage = interface +c {
 #Class representing a Cosmos transaction
 CosmosLikeTransaction = interface +c {
 	# Get the hash of the transaction.
-	getHash(): string;
-	# Get Fees (in drop)
-	getFees(): Amount;
-	# Get destination Cosmos. address
-	getReceiver(): optional<CosmosLikeAddress>;
-	# Get Cosmos. sender address
-	getSender(): CosmosLikeAddress;
-	# Get amount of Cosmos to send
-	getValue(): optional<Amount>;
+	const getHash(): string;
+	# Get Fee (in drop)
+	const getFee(): Amount;
 	# Serialize the transaction to its JSON format.
 	serialize(): string;
-	# Set signature of transaction, when a signature is set serialize method gives back serialized Tx
+    # Get the list of messages
+    const getMessages(): list<CosmosLikeMessage>;
+    # Get memo
+    const getMemo(): string;
+    # Set signature of transaction, when a signature is set serialize method gives back serialized Tx
 	setSignature(rSignature: binary, sSignature: binary);
 	setDERSignature(signature: binary);
 	# Get the time when the transaction was issued or the time of the block including
 	# this transaction
-	getDate(): date;
+	const getDate(): date;
 	# Get Signing public Key
-	getSigningPubKey(): binary;
-	getGasLimit(): Amount;
-	getGasPrice(): Amount;
-	getGasAdjustment(): f64;
+	const getSigningPubKey(): binary;
+	const getGas(): Amount;
 }
 
 #Class representing a Cosmos Operation
@@ -209,24 +211,26 @@ CosmosLikeBlock = interface +c {
 }
 
 CosmosLikeTransactionBuilder = interface +c {
-	# Send funds to the given address. This method can be called multiple times to send to multiple addresses.
-	# @param amount The value to send
-	# @param address Address of the recipient
-	# @return A reference on the same builder in order to chain calls.
-	sendToAddress(amount: Amount, address: string): CosmosLikeTransactionBuilder;
+    # Set memo
+    # @param memo the memo to set
+    setMemo(memo: string): CosmosLikeTransactionBuilder;
 
-	# Send all available funds to the given address.
-	# @param address Address of the recipient
-	# @return A reference on the same builder in order to chain calls.
-	wipeToAddress(address: string): CosmosLikeTransactionBuilder;
+    # Set sequence
+    # @param sequence The sequence to set
+    setSequence(sequence: string): CosmosLikeTransactionBuilder;
 
-	# Set gas limit the originator is not willing to exceed.
-	# @return A reference on the same builder in order to chain calls.
-	setGasLimit(gasLimit: Amount): CosmosLikeTransactionBuilder;
+    # Add a new message in the internal range of messages
+    # @param msg a new message
+    addMessage(msg: CosmosLikeMessage): CosmosLikeTransactionBuilder;
 
-	setGasPrice(gasPrice: Amount): CosmosLikeTransactionBuilder;
+    # Set gas price
+    # @param gas The gas to set
+	setGas(gas: Amount): CosmosLikeTransactionBuilder;
 
-	setGasAdjustment(gasAdjustment: f64): CosmosLikeTransactionBuilder;
+    # Set fee
+    # Here the fee represents the gas price multiplied by the gas used
+    # @param fee The fee to set
+    setFee(fee: Amount): CosmosLikeTransactionBuilder;
 
 	# Build a transaction from the given builder parameters.
 	build(callback: Callback<CosmosLikeTransaction>);

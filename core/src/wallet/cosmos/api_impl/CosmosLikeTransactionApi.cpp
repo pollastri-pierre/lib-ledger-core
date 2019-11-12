@@ -30,6 +30,9 @@
 
 
 #include "CosmosLikeTransactionApi.h"
+
+#include <fmt/format.h>
+
 #include <wallet/common/Amount.h>
 #include <wallet/common/AbstractAccount.hpp>
 #include <wallet/common/AbstractWallet.hpp>
@@ -42,6 +45,10 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <utils/base64.h>
+#include <api/CosmosLikeMsgType.hpp>
+#include <wallet/cosmos/CosmosLikeMessage.h>
+#include <wallet/cosmos/CosmosLikeConstants.hpp>
+
 using namespace rapidjson;
 namespace ledger {
     namespace core {
@@ -58,57 +65,58 @@ namespace ledger {
 
             _hash = tx.hash;
             _currency = operation->getAccount()->getWallet()->getCurrency();
-            _gasPrice = std::make_shared<Amount>(_currency, 0, tx.gasPrice);
-            _gasLimit = std::make_shared<Amount>(_currency, 0, tx.gasLimit);
+            // _fee = tx.fee;
+            // _gaz = tx.gas;
+            // _accountNumber = tx.accountNumber;
+            _memo = tx.memo;
+            // _sequence = tx.sequence;
 
-            // TODO COSMOS Hack!!! Normally we should have multiple messages here and not a sender and recipient
             if (tx.messages.empty()) {
                 throw Exception(api::ErrorCode::INVALID_ARGUMENT, "No messages while creating Cosmos transaction");
-            } else {
-                _value = std::make_shared<Amount>(_currency, 0, tx.messages.front().amount);
-                _receiver = CosmosLikeAddress::fromBech32(tx.messages.front().recipient, _currency);
-                _sender = CosmosLikeAddress::fromBech32(tx.messages.front().sender, _currency);
+            } 
+            else {
+               // TODO manage messages here
             }
         }
 
-        std::string CosmosLikeTransactionApi::getHash() {
+        std::string CosmosLikeTransactionApi::getMemo() const {
+            return _memo;
+        }
+
+        std::vector<std::shared_ptr<api::CosmosLikeMessage>> CosmosLikeTransactionApi::getMessages() const {
+            return _messages;
+        }
+
+        CosmosLikeTransactionApi & CosmosLikeTransactionApi::setMessages(const std::vector<std::shared_ptr<api::CosmosLikeMessage>> & messages) {
+            for (auto& message : messages) {
+                if (message->getMessageType() == api::CosmosLikeMsgType::UNKNOWN) {
+                    throw Exception(
+                        api::ErrorCode::INVALID_ARGUMENT, 
+                        fmt::format("Unknown '{}' message", message->getRawMessageType()));
+                }
+            }
+            _messages = messages;
+            return *this;
+        }
+
+        std::string CosmosLikeTransactionApi::getHash() const {
             return _hash;
         }
 
-        std::shared_ptr<api::Amount> CosmosLikeTransactionApi::getFees() {
-            return std::make_shared<Amount>(_currency, 0, BigInt(_gasPrice->toString()) * BigInt(_gasLimit->toString()));
+        std::shared_ptr<api::Amount> CosmosLikeTransactionApi::getFee() const {
+            return std::make_shared<Amount>(_currency, 0, BigInt(_fee->toString()) * BigInt(_gas->toString()));
         }
 
-        std::shared_ptr<api::CosmosLikeAddress> CosmosLikeTransactionApi::getReceiver() {
-            return _receiver;
-        }
-
-        std::shared_ptr<api::CosmosLikeAddress> CosmosLikeTransactionApi::getSender() {
-            return _sender;
-        }
-
-        std::shared_ptr<api::Amount> CosmosLikeTransactionApi::getValue() {
-            return _value;
-        }
-
-        std::chrono::system_clock::time_point CosmosLikeTransactionApi::getDate() {
+       std::chrono::system_clock::time_point CosmosLikeTransactionApi::getDate() const {
             return _time;
         }
 
-        std::vector<uint8_t> CosmosLikeTransactionApi::getSigningPubKey() {
+        std::vector<uint8_t> CosmosLikeTransactionApi::getSigningPubKey() const {
             return _signingPubKey;
         }
 
-        std::shared_ptr<api::Amount> CosmosLikeTransactionApi::getGasLimit() {
-            return _gasLimit;
-        }
-
-        std::shared_ptr<api::Amount> CosmosLikeTransactionApi::getGasPrice() {
-            return _gasPrice;
-        }
-
-        double CosmosLikeTransactionApi::getGasAdjustment() {
-            return _gasAdjustment;
+        std::shared_ptr<api::Amount> CosmosLikeTransactionApi::getGas() const {
+            return _gas;
         }
 
         void CosmosLikeTransactionApi::setSignature(const std::vector<uint8_t> &rSignature,
@@ -146,6 +154,8 @@ namespace ledger {
         }
 
         std::string CosmosLikeTransactionApi::serialize() {
+            using namespace constants;
+
             Document document;
             document.SetObject();
 
@@ -153,78 +163,57 @@ namespace ledger {
 
             Value vString(rapidjson::kStringType);
             vString.SetString(_accountNumber.c_str(), static_cast<rapidjson::SizeType>(_accountNumber.length()), allocator);
-            document.AddMember("account_number", vString, allocator);
+            document.AddMember(kAccountNumber, vString, allocator);
 
             auto chainID = _currency.cosmosLikeNetworkParameters.value().ChainId;
             vString.SetString(chainID.c_str(), static_cast<rapidjson::SizeType>(chainID.length()), allocator);
-            document.AddMember("chain_id", vString, allocator);
+            document.AddMember(kChainId, vString, allocator);
 
             auto getAmountObject = [&] (const std::string &denom, const std::string &amount) {
                 Value amountObject(kObjectType);
                 Value vStringLocal(rapidjson::kStringType);
                 vStringLocal.SetString(amount.c_str(), static_cast<rapidjson::SizeType>(amount.length()), allocator);
-                amountObject.AddMember("amount", vStringLocal, allocator);
+                amountObject.AddMember(kAmount, vStringLocal, allocator);
                 vStringLocal.SetString(denom.c_str(), static_cast<rapidjson::SizeType>(denom.length()), allocator);
-                amountObject.AddMember("denom", vStringLocal, allocator);
+                amountObject.AddMember(kDenom, vStringLocal, allocator);
                 return amountObject;
             };
 
-            // Fees object
-            auto fees = std::make_shared<BigInt>(BigInt(_gasPrice->toString()) * BigInt(_gasLimit->toString()));
-            auto feeAmountObj = getAmountObject(_gasPrice->getUnit().name, fees->toString());
+            // Fee object
+            auto fees = std::make_shared<BigInt>(BigInt(_fee->toString()) * BigInt(_gas->toString()));
+            auto feeAmountObj = getAmountObject(_fee->getUnit().name, fees->toString());
             Value feeArray(kArrayType);
             feeArray.PushBack(feeAmountObj, allocator);
             Value feeAmountObject(kObjectType);
-            feeAmountObject.AddMember("amount", feeArray, allocator);
-            auto gasLimit = _gasLimit->toString();
-            vString.SetString(gasLimit.c_str(), static_cast<rapidjson::SizeType>(gasLimit.length()), allocator);
-            feeAmountObject.AddMember("gas", vString, allocator);
-            Value vDouble(rapidjson::kNumberType);
-            if (_gasAdjustment > 0) {
-                vDouble.SetDouble(_gasAdjustment);
-                feeAmountObject.AddMember("gas_adjustment", vDouble, allocator);
-            }
-            document.AddMember("fee", feeAmountObject, allocator);
+            feeAmountObject.AddMember(kAmount, feeArray, allocator);
+            auto gas = _gas->toString();
+            vString.SetString(gas.c_str(), static_cast<rapidjson::SizeType>(gas.length()), allocator);
+            feeAmountObject.AddMember(kGas, vString, allocator);
+            document.AddMember(kFee, feeAmountObject, allocator);
 
             vString.SetString(_memo.c_str(), static_cast<rapidjson::SizeType>(_memo.length()), allocator);
-            document.AddMember("memo", vString, allocator);
+            document.AddMember(kMemo, vString, allocator);
 
             //cosmos-sdk/MsgSend
-            Value msgValueObject(kObjectType);
-            auto amountObj = getAmountObject(_value->getUnit().name, _value->toString());
-            msgValueObject.AddMember("value", amountObj, allocator);
-            auto from =  _sender->toBech32();
-            vString.SetString(from.c_str(), static_cast<rapidjson::SizeType>(from.length()), allocator);
-            msgValueObject.AddMember("from", vString, allocator);
-            auto to = _receiver->toBech32();
-            vString.SetString(to.c_str(), static_cast<rapidjson::SizeType>(to.length()), allocator);
-            msgValueObject.AddMember("to", vString, allocator);
-
-            Value msgObject(kObjectType);
-            //TODO: to change when supportig other types
-            std::string msgType = "cosmos-sdk/MsgSend";
-            vString.SetString(msgType.c_str(), static_cast<rapidjson::SizeType>(msgType.length()), allocator);
-            msgObject.AddMember("type", vString, allocator);
-            msgObject.AddMember("value", msgValueObject, allocator);
-
             Value msgArray(kArrayType);
-            msgArray.PushBack(msgObject, allocator);
-
-            document.AddMember("msgs", msgArray, allocator);
+            for (auto msg: _messages) {
+                msgArray.PushBack(std::dynamic_pointer_cast<CosmosLikeMessage>(msg)->toJson(allocator), allocator);
+            }
+            document.AddMember(kMessages, msgArray, allocator);
 
             // Add signatures
             if (!_sSignature.empty() && !_rSignature.empty()) {
                 Value sigArray(kArrayType);
 
                 Value pubKeyObject(kObjectType);
+                // TODO store it somewhere
                 std::string pubKeyType = "tendermint/PubKeySecp256k1";
                 vString.SetString(pubKeyType.c_str(), static_cast<rapidjson::SizeType>(pubKeyType.length()), allocator);
-                pubKeyObject.AddMember("type", vString, allocator);
+                pubKeyObject.AddMember(kType, vString, allocator);
 
                 auto pubKeyValue = base64_encode(_signingPubKey.data(), _signingPubKey.size());
                 vString.SetString(pubKeyValue.c_str(), static_cast<rapidjson::SizeType>(pubKeyValue.length()), allocator);
-                pubKeyObject.AddMember("value", vString, allocator);
-
+                pubKeyObject.AddMember(kValue, vString, allocator);
 
                 auto pad = [] (const std::vector<uint8_t> &input) {
                     auto output = input;
@@ -240,42 +229,23 @@ namespace ledger {
 
                 // Set pub key
                 Value sigObject(kObjectType);
-                sigObject.AddMember("pub_key", pubKeyObject, allocator);
+                sigObject.AddMember(kPubKey, pubKeyObject, allocator);
                 // Set signature
                 auto strSignature = base64_encode(signature.data(), signature.size());
                 vString.SetString(strSignature.c_str(), static_cast<rapidjson::SizeType>(strSignature.length()), allocator);
-                sigObject.AddMember("signature", vString, allocator);
+                sigObject.AddMember(kSignature, vString, allocator);
 
                 sigArray.PushBack(sigObject, allocator);
-                document.AddMember("signature", sigArray, allocator);
+                document.AddMember(kSignature, sigArray, allocator);
             }
 
             vString.SetString(_sequence.c_str(), static_cast<rapidjson::SizeType>(_sequence.length()), allocator);
-            document.AddMember("sequence", vString, allocator);
+            document.AddMember(kSequence, vString, allocator);
 
             StringBuffer buffer;
             Writer<StringBuffer> writer(buffer);
             document.Accept(writer);
             return buffer.GetString();
-        }
-
-        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setValue(const std::shared_ptr<BigInt> &value) {
-            if (!value) {
-                throw make_exception(api::ErrorCode::INVALID_ARGUMENT,
-                                     "CosmosLikeTransactionApi::setValue: Invalid Value");
-            }
-            _value = std::make_shared<Amount>(_currency, 0, *value);
-            return *this;
-        }
-
-        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setSender(const std::shared_ptr<api::CosmosLikeAddress> &sender) {
-            _sender = sender;
-            return *this;
-        }
-
-        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setReceiver(const std::shared_ptr<api::CosmosLikeAddress> &receiver) {
-            _receiver = receiver;
-            return *this;
         }
 
         CosmosLikeTransactionApi &CosmosLikeTransactionApi::setSigningPubKey(const std::vector<uint8_t> &pubKey) {
@@ -288,26 +258,21 @@ namespace ledger {
             return *this;
         }
 
-        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setGasLimit(const std::shared_ptr<BigInt> &gasLimit) {
-            if (!gasLimit) {
+        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setGas(const std::shared_ptr<BigInt> &gas) {
+            if (!gas) {
                 throw make_exception(api::ErrorCode::INVALID_ARGUMENT,
-                                     "CosmosLikeTransactionApi::setGasLimit: Invalid gas limit");
+                                     "CosmosLikeTransactionApi::setGas: Invalid gas");
             }
-            _gasLimit = std::make_shared<Amount>(_currency, 0, *gasLimit);
+            _gas = std::make_shared<Amount>(_currency, 0, *gas);
             return *this;
         }
 
-        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setGasPrice(const std::shared_ptr<BigInt> &gasPrice) {
-            if (!gasPrice) {
+        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setFee(const std::shared_ptr<BigInt> &fee) {
+            if (!fee) {
                 throw make_exception(api::ErrorCode::INVALID_ARGUMENT,
-                                     "CosmosLikeTransactionApi::setGasPrice: Invalid gas price");
+                                     "CosmosLikeTransactionApi::setGasPrice: Invalid fee");
             }
-            _gasPrice = std::make_shared<Amount>(_currency, 0, *gasPrice);
-            return *this;
-        }
-
-        CosmosLikeTransactionApi &CosmosLikeTransactionApi::setGasAdjustment(double gasAdjustment) {
-            _gasAdjustment = gasAdjustment;
+            _fee = std::make_shared<Amount>(_currency, 0, *fee);
             return *this;
         }
 

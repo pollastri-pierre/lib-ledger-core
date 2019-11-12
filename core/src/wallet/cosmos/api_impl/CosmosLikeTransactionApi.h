@@ -32,9 +32,13 @@
 #ifndef LEDGER_CORE_COSMOSLIKETRANSACTIONAPI_H
 #define LEDGER_CORE_COSMOSLIKETRANSACTIONAPI_H
 
+#include <vector>
+
 #include <wallet/common/api_impl/OperationApi.h>
 #include <wallet/cosmos/api_impl/CosmosLikeBlockApi.h>
 #include <api/CosmosLikeTransaction.hpp>
+#include <api/CosmosLikeAmount.hpp>
+#include <api/CosmosLikeMessage.hpp>
 #include <api/Amount.hpp>
 #include <api/Currency.hpp>
 #include <math/BigInt.h>
@@ -46,27 +50,21 @@ namespace ledger {
             explicit CosmosLikeTransactionApi(const api::Currency& currency);
             explicit CosmosLikeTransactionApi(const std::shared_ptr<OperationApi>& operation);
 
-            std::string getHash() override;
-            std::shared_ptr<api::Amount> getFees() override ;
-            std::shared_ptr<api::CosmosLikeAddress> getReceiver() override ;
-            std::shared_ptr<api::CosmosLikeAddress> getSender() override;
-            std::shared_ptr<api::Amount> getValue() override;
+            std::string getHash() const override;
+            std::shared_ptr<api::Amount> getFee() const override;
+            std::vector<std::shared_ptr<api::CosmosLikeMessage>> getMessages() const override;
             std::string serialize() override;
-            std::chrono::system_clock::time_point getDate() override;
+            std::string getMemo() const override;
+            std::chrono::system_clock::time_point getDate() const override;
             void setSignature(const std::vector<uint8_t> & rSignature, const std::vector<uint8_t> & sSignature) override ;
             void setDERSignature(const std::vector<uint8_t> & signature) override;
-            std::vector<uint8_t> getSigningPubKey() override;
-            std::shared_ptr<api::Amount> getGasLimit() override;
-            std::shared_ptr<api::Amount> getGasPrice() override;
-            double getGasAdjustment() override;
-            CosmosLikeTransactionApi & setValue(const std::shared_ptr<BigInt>& value);
-            CosmosLikeTransactionApi & setSender(const std::shared_ptr<api::CosmosLikeAddress> &sender);
-            CosmosLikeTransactionApi & setReceiver(const std::shared_ptr<api::CosmosLikeAddress> &receiver);
+            std::vector<uint8_t> getSigningPubKey() const override;
+            std::shared_ptr<api::Amount> getGas() const override;
+            CosmosLikeTransactionApi & setMessages(const std::vector<std::shared_ptr<api::CosmosLikeMessage>> & messages);
             CosmosLikeTransactionApi & setSigningPubKey(const std::vector<uint8_t> &pubKey);
             CosmosLikeTransactionApi & setHash(const std::string &hash);
-            CosmosLikeTransactionApi & setGasLimit(const std::shared_ptr<BigInt>& gasLimit);
-            CosmosLikeTransactionApi & setGasPrice(const std::shared_ptr<BigInt>& gasPrice);
-            CosmosLikeTransactionApi & setGasAdjustment(double gasAdjustment);
+            CosmosLikeTransactionApi & setGas(const std::shared_ptr<BigInt>& gas);
+            CosmosLikeTransactionApi & setFee(const std::shared_ptr<BigInt>& fee);
             CosmosLikeTransactionApi & setSequence(const std::string &sequence);
             CosmosLikeTransactionApi & setMemo(const std::string &memo);
             CosmosLikeTransactionApi & setAccountNumber(const std::string &accountNumber);
@@ -76,15 +74,12 @@ namespace ledger {
             std::shared_ptr<CosmosLikeBlockApi> _block;
             std::string _hash;
             api::Currency _currency;
-            std::shared_ptr<api::Amount> _value;
-            std::shared_ptr<api::Amount> _gasLimit;
-            std::shared_ptr<api::Amount> _gasPrice;
-            double _gasAdjustment = 0;
+            std::vector<std::shared_ptr<api::CosmosLikeMessage>> _messages;
+            std::shared_ptr<api::Amount> _fee;
+            std::shared_ptr<api::Amount> _gas;
             std::string _accountNumber;
             std::string _sequence;
             std::string _memo;
-            std::shared_ptr<api::CosmosLikeAddress> _receiver;
-            std::shared_ptr<api::CosmosLikeAddress> _sender;
             std::vector<uint8_t> _rSignature;
             std::vector<uint8_t> _sSignature;
             std::vector<uint8_t> _signingPubKey;

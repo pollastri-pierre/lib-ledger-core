@@ -52,12 +52,12 @@ namespace ledger {
             CosmosLikeTransactionBuildRequest() {
                 wipe = false;
             };
-            std::string toAddress;
-            std::shared_ptr<BigInt> value;
-            std::shared_ptr<BigInt> gasLimit;
-            std::shared_ptr<BigInt> gasPrice;
-            double gasAdjustment;
-            BigInt sequence;
+            std::shared_ptr<BigInt> fee;
+            std::shared_ptr<BigInt> gas;
+            std::string memo;
+            std::string sequence;
+            std::vector<std::shared_ptr<api::CosmosLikeMessage>> messages;
+
             bool wipe;
         };
 
@@ -77,16 +77,15 @@ namespace ledger {
 
             CosmosLikeTransactionBuilder(const CosmosLikeTransactionBuilder &cpy);
 
-            std::shared_ptr<api::CosmosLikeTransactionBuilder> sendToAddress(const std::shared_ptr<api::Amount> &amount,
-                                                                             const std::string &address) override;
+            std::shared_ptr<api::CosmosLikeTransactionBuilder> setMemo(const std::string & memo) override;
 
-            std::shared_ptr<api::CosmosLikeTransactionBuilder> wipeToAddress(const std::string &address) override;
+            std::shared_ptr<api::CosmosLikeTransactionBuilder> setSequence(const std::string & sequence) override;
 
-            std::shared_ptr<api::CosmosLikeTransactionBuilder> setGasPrice(const std::shared_ptr<api::Amount> & gasPrice) override ;
+            std::shared_ptr<api::CosmosLikeTransactionBuilder> addMessage(const std::shared_ptr<api::CosmosLikeMessage> & msg) override;
 
-            std::shared_ptr<api::CosmosLikeTransactionBuilder> setGasLimit(const std::shared_ptr<api::Amount> & gasLimit) override ;
+            std::shared_ptr<api::CosmosLikeTransactionBuilder> setGas(const std::shared_ptr<api::Amount> & gas) override;
 
-            std::shared_ptr<api::CosmosLikeTransactionBuilder> setGasAdjustment(double gasAdjustment) override;
+            std::shared_ptr<api::CosmosLikeTransactionBuilder> setFee(const std::shared_ptr<api::Amount> & fee) override;
 
             void build(const std::shared_ptr<api::CosmosLikeTransactionCallback> &callback) override;
 
