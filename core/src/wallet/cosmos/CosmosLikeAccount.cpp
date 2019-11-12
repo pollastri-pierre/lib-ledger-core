@@ -420,15 +420,12 @@ namespace ledger {
                                         const std::shared_ptr<CosmosLikeBlockchainExplorer> &explorer) {
                 auto currency = self->getWallet()->getCurrency();
                 auto tx = std::make_shared<CosmosLikeTransactionApi>(self->getWallet()->getCurrency());
-                tx->setValue(request.value);
-                tx->setGasLimit(request.gasLimit);
-                tx->setGasPrice(request.gasPrice);
-                tx->setGasAdjustment(request.gasAdjustment);
-                auto accountAddress = CosmosLikeAddress::fromBech32(senderAddress, self->getWallet()->getCurrency());
-                tx->setSender(accountAddress);
-                tx->setReceiver(CosmosLikeAddress::fromBech32(request.toAddress, currency));
+                tx->setFee(request.fee);
+                tx->setGas(request.gas);
+                tx->setMessages(request.messages);
                 tx->setSigningPubKey(self->getKeychain()->getPublicKey());
-                //TODO: set sequence
+                tx->setSequence(request.sequence);
+                tx->setMemo(request.memo);
                 return Future<std::shared_ptr<api::CosmosLikeTransaction>>::successful(tx);
             };
             return std::make_shared<CosmosLikeTransactionBuilder>(getContext(),
