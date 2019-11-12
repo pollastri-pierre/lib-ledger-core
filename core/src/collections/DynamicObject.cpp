@@ -254,15 +254,16 @@ namespace ledger {
                         auto value = getString(key).value();
                         Value string(kStringType);
 
-                        string.SetString(value.c_str(), static_cast<SizeType>(value.size()), allocator);
+                        string.SetString(value.c_str(), static_cast<SizeType>(value.length()), allocator);
                         object.AddMember(Value(key.c_str(), allocator), string, allocator);
                         break;
                     }
                     case api::DynamicType::BOOLEAN:
                     {
-                        Value number(kTrueType);
+                        auto value = getBoolean(key).value(); 
+                        Value number(value ? kTrueType : kFalseType);
 
-                        number.SetBool(getBoolean(key).value());
+                        number.SetBool(value);
                         object.AddMember(Value(key.c_str(), allocator), number, allocator);
                         break;
                     }
@@ -289,6 +290,17 @@ namespace ledger {
                         number.SetInt64(getLong(key).value());
                         object.AddMember(Value(key.c_str(), allocator), number, allocator);
                         break;
+                    }
+                    case api::DynamicType::DATA:
+                    {
+                        auto value = getData(key).value();
+                        auto stringifiedValue = std::string(std::begin(value), std::end(value));
+
+                        Value string(kStringType);
+                        
+                        string.SetString(stringifiedValue.c_str(), static_cast<SizeType>(stringifiedValue.size()), allocator);
+                        object.AddMember(Value(key.c_str(), allocator), string, allocator);
+                        break; 
                     }
                     default:
                         throw Exception(

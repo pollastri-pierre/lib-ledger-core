@@ -230,9 +230,10 @@ namespace ledger {
                     }
                     case api::DynamicType::BOOLEAN:
                     {
-                        Value number(kTrueType);
+                        auto value = getBoolean(i).value(); 
+                        Value number(value ? kTrueType : kFalseType);
 
-                        number.SetBool(getBoolean(i).value());
+                        number.SetBool(value);
                         object.PushBack(number, allocator);
                         break;
                     }
@@ -259,6 +260,17 @@ namespace ledger {
                         number.SetInt64(getLong(i).value());
                         object.PushBack(number, allocator);
                         break;
+                    }
+                    case api::DynamicType::DATA:
+                    {
+                        auto value = getData(i).value();
+                        auto stringifiedValue = std::string(std::begin(value), std::end(value));
+
+                        Value string(kStringType);
+                        
+                        string.SetString(stringifiedValue.c_str(), static_cast<SizeType>(stringifiedValue.size()), allocator);
+                        object.PushBack(string, allocator);
+                        break; 
                     }
                     default:
                         throw Exception(
