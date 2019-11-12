@@ -31,6 +31,8 @@
 #ifndef LEDGER_CORE_DYNAMICARRAY_HPP
 #define LEDGER_CORE_DYNAMICARRAY_HPP
 
+#include <rapidjson/document.h>
+
 #include "../api/DynamicArray.hpp"
 #include "../api/DynamicObject.hpp"
 #include "../api/DynamicType.hpp"
@@ -108,7 +110,8 @@ namespace ledger {
             void serialize(Archive& ar) {
                 ar(_values.getContainer());
             }
-
+            
+            rapidjson::Value toJson(rapidjson::Document::AllocatorType& allocator);
         private:
             Array<DynamicValue> _values;
             bool _readOnly;

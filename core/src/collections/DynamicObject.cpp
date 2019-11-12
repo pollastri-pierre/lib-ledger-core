@@ -39,6 +39,8 @@
 
 namespace ledger {
     namespace core {
+
+      
         optional<std::string> DynamicObject::getString(const std::string &key) {
             return get<std::string>(key);
         }
@@ -226,6 +228,77 @@ namespace ledger {
                 }
             }
             return shared_from_this();
+        }
+
+        rapidjson::Value DynamicObject::toJson(rapidjson::Document::AllocatorType& allocator) {
+            using namespace rapidjson;
+
+            Value object(kObjectType);
+
+            for (auto const& key : getKeys()) {
+                switch (getType(key).value()) {
+                    case api::DynamicType::OBJECT:
+                        object.AddMember(
+                            Value(key.c_str(), allocator),
+                            std::dynamic_pointer_cast<DynamicObject>(getObject(key))->toJson(allocator),
+                            allocator);
+                        break;
+                    case api::DynamicType::ARRAY:
+                        object.AddMember(
+                            Value(key.c_str(), allocator),
+                            std::dynamic_pointer_cast<DynamicArray>(getArray(key))->toJson(allocator),
+                            allocator);
+                        break;
+                    case api::DynamicType::STRING:
+                    {
+                        auto value = getString(key).value();
+                        Value string(kStringType);
+
+                        string.SetString(value.c_str(), static_cast<SizeType>(value.size()), allocator);
+                        object.AddMember(Value(key.c_str(), allocator), string, allocator);
+                        break;
+                    }
+                    case api::DynamicType::BOOLEAN:
+                    {
+                        Value number(kTrueType);
+
+                        number.SetBool(getBoolean(key).value());
+                        object.AddMember(Value(key.c_str(), allocator), number, allocator);
+                        break;
+                    }
+                    case api::DynamicType::DOUBLE:
+                    {
+                        Value number(kNumberType);
+
+                        number.SetDouble(getDouble(key).value());
+                        object.AddMember(Value(key.c_str(), allocator), number, allocator);
+                        break;
+                    }   
+                    case api::DynamicType::INT32:
+                    {
+                        Value number(kNumberType);
+
+                        number.SetInt(getInt(key).value());
+                        object.AddMember(Value(key.c_str(), allocator), number, allocator);
+                        break;
+                    }
+                    case api::DynamicType::INT64:
+                    {
+                        Value number(kNumberType);
+
+                        number.SetInt64(getLong(key).value());
+                        object.AddMember(Value(key.c_str(), allocator), number, allocator);
+                        break;
+                    }
+                    default:
+                        throw Exception(
+                            api::ErrorCode::RUNTIME_ERROR,
+                            fmt::format("cannot parse '{}' type", api::to_string(getType(key).value())));
+                        break;
+                }
+            }
+
+            return object;
         }
     }
 }
