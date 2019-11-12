@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include <rapidjson/document.h>
+
 #include <api/CosmosLikeMessage.hpp>
 #include <api/CosmosLikeMsgType.hpp>
 #include <api/CosmosLikeAmount.hpp>
@@ -52,7 +54,10 @@ namespace ledger {
 			
 		public:
 			CosmosLikeMessage(const std::shared_ptr<DynamicObject>& content);
-			virtual api::CosmosLikeMsgType getMessageType() override;
+			virtual api::CosmosLikeMsgType getMessageType() const override;
+			virtual std::string getRawMessageType() const override;
+
+			rapidjson::Value toJson(rapidjson::Document::AllocatorType& allocator) const;
 
 		private:
 			std::shared_ptr<DynamicObject> _content;

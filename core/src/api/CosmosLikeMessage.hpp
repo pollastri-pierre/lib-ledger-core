@@ -5,6 +5,7 @@
 #define DJINNI_GENERATED_COSMOSLIKEMESSAGE_HPP
 
 #include <memory>
+#include <string>
 #ifndef LIBCORE_EXPORT
     #if defined(_MSC_VER)
        #include <libcore_export.h>
@@ -29,7 +30,17 @@ class LIBCORE_EXPORT CosmosLikeMessage {
 public:
     virtual ~CosmosLikeMessage() {}
 
-    virtual CosmosLikeMsgType getMessageType() = 0;
+    /**
+     * Get type
+     * @return CosmosLikeMsgType a message type
+     */
+    virtual CosmosLikeMsgType getMessageType() const = 0;
+
+    /**
+     * Get type
+     * @return string a message type in string format
+     */
+    virtual std::string getRawMessageType() const = 0;
 
     /**
      * Wrap the given CosmosLikeMsgSend into a CosmosLikeMessage

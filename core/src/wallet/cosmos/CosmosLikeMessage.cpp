@@ -36,41 +36,16 @@
 #include <fmt/format.h>
 
 #include <api/ErrorCode.hpp>
+#include <api/enum_from_string.hpp>
 #include <collections/DynamicArray.hpp>
+
+#include <wallet/cosmos/CosmosLikeConstants.hpp>
 
 namespace ledger {
 	namespace core {
 
+		using namespace constants;
 		namespace {
-			constexpr auto kMsgSend = "cosmos-sdk/MsgSend";
-			constexpr auto kMsgDelegate = "cosmos-sdk/MsgDelegate";
-			constexpr auto kMsgUndelegate = "cosmos-sdk/MsgUndelegate";
-			constexpr auto kMsgRedelegate = "cosmos-sdk/MsgBeginRedelegate";
-			constexpr auto kMsgSubmitProposal = "cosmos-sdk/MsgSubmitProposal";
-			constexpr auto kMsgVote = "cosmos-sdk/MsgVote";
-			constexpr auto kMsgDeposit = "cosmos-sdk/MsgDeposit";
-			constexpr auto kMsgWithdrawDelegationReward = "cosmos-sdk/MsgWithdrawDelegationReward";
-			
-			constexpr auto kType = "type";
-			constexpr auto kValue = "value";
-			constexpr auto kFromAddress = "from_address";
-			constexpr auto kToAddress = "to_address";
-			constexpr auto kAmount = "amount";
-			constexpr auto kDenom = "denom";
-			constexpr auto kDelegatorAddress = "delegator_address";
-			constexpr auto kValidatorAddress = "validator_address";
-			constexpr auto kValidatorSrcAddress = "validator_src_address";
-			constexpr auto kValidatorDstAddress = "validator_dst_address";
-			constexpr auto kContent = "content";
-			constexpr auto kTitle = "title";
-			constexpr auto kDescription = "description";
-			constexpr auto kProposer = "proposer";
-			constexpr auto kInitialDeposit = "initial_deposit";
-			constexpr auto kVoter = "voter";
-			constexpr auto kProposalId = "proposal_id";
-			constexpr auto kOption = "option";
-			constexpr auto kDepositor = "depositor";
-
 			// a closure helper that check if a `DynamicObject` holds a specific key
 			inline auto containsKeys(std::shared_ptr<api::DynamicObject> object) {
 				return [=](auto const& key) {
@@ -103,8 +78,8 @@ namespace ledger {
 
 		}
 
-		api::CosmosLikeMsgType CosmosLikeMessage::getMessageType() {
-			auto msgType = _content->get<std::string>(kType).value_or("");
+		api::CosmosLikeMsgType CosmosLikeMessage::getMessageType() const {
+			auto msgType = getRawMessageType();
 
 			if (msgType == kMsgSend) {
 				return api::CosmosLikeMsgType::MSGSEND;
@@ -125,6 +100,14 @@ namespace ledger {
 			}  else {
 				return api::CosmosLikeMsgType::UNKNOWN;
 			}
+		}
+
+		std::string CosmosLikeMessage::getRawMessageType() const {
+			return _content->get<std::string>(kType).value_or("");
+		}
+
+		rapidjson::Value CosmosLikeMessage::toJson(rapidjson::Document::AllocatorType& allocator) const {
+			return _content->toJson(allocator);
 		}
 
 		std::shared_ptr<api::CosmosLikeMessage> api::CosmosLikeMessage::wrapMsgSend(const api::CosmosLikeMsgSend & msg) {
@@ -475,7 +458,7 @@ namespace ledger {
 
 			value->putString(kVoter, msg.voter);
 			value->putString(kProposalId, msg.proposalId);
-			value->putInt(kOption, static_cast<int>(msg.option));
+			value->putString(kOption, api::to_string(msg.option));
 
 			return std::make_shared<::ledger::core::CosmosLikeMessage>(object);	
 		}
@@ -502,7 +485,7 @@ namespace ledger {
 	
 				underlyingMsg.voter = value->getString(kVoter).value();
 				underlyingMsg.proposalId = value->getString(kProposalId).value();
-				underlyingMsg.option = static_cast<api::CosmosLikeVoteOption>(value->getInt(kOption).value());
+				underlyingMsg.option = api::from_string<api::CosmosLikeVoteOption>(value->getString(kOption).value());
 			}
 
 			return underlyingMsg;

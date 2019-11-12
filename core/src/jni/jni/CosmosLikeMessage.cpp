@@ -11,6 +11,7 @@
 #include "CosmosLikeMsgUndelegate.hpp"
 #include "CosmosLikeMsgVote.hpp"
 #include "CosmosLikeMsgWithdrawDelegationReward.hpp"
+#include "Marshal.hpp"
 
 namespace djinni_generated {
 
@@ -34,6 +35,16 @@ CJNIEXPORT jobject JNICALL Java_co_ledger_core_CosmosLikeMessage_00024CppProxy_n
         const auto& ref = ::djinni::objectFromHandleAddress<::ledger::core::api::CosmosLikeMessage>(nativeRef);
         auto r = ref->getMessageType();
         return ::djinni::release(::djinni_generated::CosmosLikeMsgType::fromCpp(jniEnv, r));
+    } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, 0 /* value doesn't matter */)
+}
+
+CJNIEXPORT jstring JNICALL Java_co_ledger_core_CosmosLikeMessage_00024CppProxy_native_1getRawMessageType(JNIEnv* jniEnv, jobject /*this*/, jlong nativeRef)
+{
+    try {
+        DJINNI_FUNCTION_PROLOGUE1(jniEnv, nativeRef);
+        const auto& ref = ::djinni::objectFromHandleAddress<::ledger::core::api::CosmosLikeMessage>(nativeRef);
+        auto r = ref->getRawMessageType();
+        return ::djinni::release(::djinni::String::fromCpp(jniEnv, r));
     } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, 0 /* value doesn't matter */)
 }
 
