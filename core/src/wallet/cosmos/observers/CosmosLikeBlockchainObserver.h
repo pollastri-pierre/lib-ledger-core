@@ -56,7 +56,7 @@ namespace ledger {
     namespace core {
         class CosmosLikeAccount;
 
-        using CosmosBlockchainObserver = AbstractBlockchainObserver<CosmosLikeAccount, CosmosLikeBlockchainExplorerTransaction, CosmosLikeBlockchainExplorer::Block>;
+        using CosmosBlockchainObserver = AbstractBlockchainObserver<CosmosLikeAccount, cosmos::Transaction, cosmos::Block>;
 
         class CosmosLikeBlockchainObserver : public CosmosBlockchainObserver,
                                              public AbstractLedgerApiBlockchainObserver,
@@ -78,7 +78,7 @@ namespace ledger {
 
 
         protected:
-            void putTransaction(const CosmosLikeBlockchainExplorerTransaction &tx) override;
+            void putTransaction(const cosmos::Transaction &tx) override;
 
             void putBlock(const CosmosLikeBlockchainExplorer::Block &block) override;
 

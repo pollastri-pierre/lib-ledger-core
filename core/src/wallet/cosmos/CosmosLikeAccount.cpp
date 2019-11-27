@@ -77,11 +77,11 @@ namespace ledger {
 
         void CosmosLikeAccount::inflateOperation(Operation &out,
                                                 const std::shared_ptr<const AbstractWallet> &wallet,
-                                                const CosmosLikeBlockchainExplorerTransaction &tx) {
+                                                const cosmos::Transaction &tx) {
             // TODO COSMOS Implement inflateOperation
             out.accountUid = getAccountUid();
             out.block = tx.block;
-            out.cosmosTransaction = Option<CosmosLikeBlockchainExplorerTransaction>(tx);
+            out.cosmosTransaction = Option<cosmos::Transaction>(tx);
             out.currencyName = getWallet()->getCurrency().name;
             out.walletType = getWalletType();
             out.walletUid = wallet->getWalletUid();
@@ -93,7 +93,7 @@ namespace ledger {
         }
 
         int CosmosLikeAccount::putTransaction(soci::session &sql,
-                                             const CosmosLikeBlockchainExplorerTransaction &tx) {
+                                             const cosmos::Transaction &tx) {
             auto wallet = getWallet();
             if (wallet == nullptr) {
                 throw Exception(api::ErrorCode::RUNTIME_ERROR, "Wallet reference is dead.");
@@ -193,10 +193,10 @@ namespace ledger {
 
         FuturePtr<Amount> CosmosLikeAccount::getBalance() {
             auto currency = getWallet()->getCurrency();
-            return _explorer->getAccount(_keychain->getAddress()->toBech32()).mapPtr<Amount>(getContext(), [currency](const CosmosLikeBlockchainExplorerAccount &balance) {
-                //TODO: handle balanceS
-                return std::make_shared<Amount>(currency, 0, balance.balances.size() > 0 ? balance.balances[0] : BigInt::ZERO);
-            });
+//            return _explorer->getAccount(_keychain->getAddress()->toBech32()).mapPtr<Amount>(getContext(), [currency](const cosmos::Account &balance) {
+//                //TODO: handle balanceS
+//                return std::make_shared<Amount>(currency, 0, balance.balances.size() > 0 ? balance.balances[0] : BigInt::ZERO);
+//            });
         }
 
         std::shared_ptr<api::OperationQuery> CosmosLikeAccount::queryOperations() {
@@ -212,9 +212,9 @@ namespace ledger {
         }
 
         void CosmosLikeAccount::getEstimatedGasLimit(const std::shared_ptr<api::CosmosLikeTransaction> &transaction, const std::shared_ptr<api::BigIntCallback> & callback) {
-            _explorer->getEstimatedGasLimit(transaction).mapPtr<api::BigInt>(getContext(), [] (const std::shared_ptr<BigInt> &gasLimit) -> std::shared_ptr<api::BigInt> {
-                return std::make_shared<api::BigIntImpl>(*gasLimit);
-            }).callback(getContext(), callback);
+//            _explorer->getEstimatedGasLimit(transaction).mapPtr<api::BigInt>(getContext(), [] (const std::shared_ptr<BigInt> &gasLimit) -> std::shared_ptr<api::BigInt> {
+//                return std::make_shared<api::BigIntImpl>(*gasLimit);
+//            }).callback(getContext(), callback);
         }
 
         Future<AbstractAccount::AddressList> CosmosLikeAccount::getFreshPublicAddresses() {
@@ -398,11 +398,11 @@ namespace ledger {
         void CosmosLikeAccount::broadcastRawTransaction(const std::string &transaction,
                                                         const std::shared_ptr<api::StringCallback> &callback) {
             std::vector<uint8_t> tx{transaction.begin(), transaction.end()};
-            _explorer->pushTransaction(tx).map<std::string>(getContext(),
-                                                                     [](const String &seq) -> std::string {
-                                                                         //TODO: optimistic update
-                                                                         return seq.str();
-                                                                     }).callback(getContext(), callback);
+//            _explorer->pushTransaction(tx).map<std::string>(getContext(),
+//                                                                     [](const String &seq) -> std::string {
+//                                                                         //TODO: optimistic update
+//                                                                         return seq.str();
+//                                                                     }).callback(getContext(), callback);
         }
 
         void CosmosLikeAccount::broadcastTransaction(const std::shared_ptr<api::CosmosLikeTransaction> &transaction,

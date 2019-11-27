@@ -35,7 +35,8 @@ namespace ledger {
     namespace core {
         CosmosLikeBlockchainExplorer::CosmosLikeBlockchainExplorer(
                 const std::shared_ptr<ledger::core::api::DynamicObject> &configuration,
-                const std::vector<std::string> &matchableKeys) : ConfigurationMatchable(matchableKeys) {
+                const std::vector<std::string> &matchableKeys)
+                : ConfigurationMatchable(matchableKeys) {
             setConfiguration(configuration);
         }
     }

@@ -43,11 +43,11 @@ namespace ledger {
         public:
             static bool getTransactionByHash(soci::session &sql,
                                              const std::string &hash,
-                                             CosmosLikeBlockchainExplorerTransaction &tx);
+                                             cosmos::Transaction &tx);
 
             static bool inflateTransaction(soci::session &sql,
                                            const soci::row &row,
-                                           CosmosLikeBlockchainExplorerTransaction &tx);
+                                           cosmos::Transaction &tx);
 
             static bool transactionExists(soci::session &sql,
                                           const std::string &cosmosTxUid);
@@ -60,7 +60,7 @@ namespace ledger {
 
             static std::string putTransaction(soci::session &sql,
                                               const std::string &accountUid,
-                                              const CosmosLikeBlockchainExplorerTransaction &tx);
+                                              const cosmos::Transaction &tx);
         };
     }
 }

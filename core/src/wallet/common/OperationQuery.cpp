@@ -220,8 +220,8 @@ namespace ledger {
         }
 
         void OperationQuery::inflateCosmosLikeTransaction(soci::session &sql, OperationApi &operation) {
-            CosmosLikeBlockchainExplorerTransaction tx;
-            operation.getBackend().cosmosTransaction = Option<CosmosLikeBlockchainExplorerTransaction>(tx);
+            cosmos::Transaction tx;
+            operation.getBackend().cosmosTransaction = Option<cosmos::Transaction>(tx);
             std::string transactionHash;
             sql << "SELECT ct.hash FROM cosmos_transactions AS ct "
                    "JOIN cosmos_messages AS cm ON ct.transaction_uid = cm.transaction_uid "

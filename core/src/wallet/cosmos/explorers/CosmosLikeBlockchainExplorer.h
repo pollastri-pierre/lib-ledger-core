@@ -48,63 +48,35 @@ BB *
 #include <wallet/common/Block.h>
 #include <wallet/common/explorers/AbstractBlockchainExplorer.h>
 #include <wallet/cosmos/keychains/CosmosLikeKeychain.h>
+#include <wallet/cosmos/cosmos.h>
 
 namespace ledger {
     namespace core {
 
-        struct CosmosLikeBlockchainExplorerMessage {
-            std::string type;
-            std::string sender;
-            std::string recipient;
-            BigInt amount;
-            BigInt fees;
-        };
-
-        struct CosmosLikeBlockchainExplorerLog {
-            int32_t messageIndex;
-            bool success;
-            std::string log;
-        };
-
-        struct CosmosLikeBlockchainExplorerTransaction {
-            std::string uid;
-            std::string hash;
-            Option<Block> block;
-            BigInt gasLimit;
-            Option<BigInt> gasUsed;
-            BigInt gasPrice; // TODO COSMOS Hackathon shortcut, the gas price seems to be set per messages
-            std::chrono::system_clock::time_point timestamp;
-            std::vector<CosmosLikeBlockchainExplorerMessage> messages;
-            std::string memo;
-            std::vector<CosmosLikeBlockchainExplorerLog> logs;
-        };
-
-        struct CosmosLikeBlockchainExplorerAccount {
-            std::string type;
-            std::string address;
-            std::vector<BigInt> balances;
-            std::string accountNumber;
-            std::string sequence;
-        };
-
-        class CosmosLikeBlockchainExplorer : public ConfigurationMatchable,
-                                             public AbstractBlockchainExplorer<CosmosLikeBlockchainExplorerTransaction> {
+        class CosmosLikeBlockchainExplorer : public ConfigurationMatchable {
         public:
             typedef ledger::core::Block Block;
 
-            CosmosLikeBlockchainExplorer(const std::shared_ptr<ledger::core::api::DynamicObject> &configuration,
-                                         const std::vector<std::string> &matchableKeys);
+            struct TransactionFilter {
+                std::string filter;
+                cosmos::MsgType msgType;
+            };
 
-            virtual Future<std::shared_ptr<BigInt>>
-            getBalance(const std::vector<CosmosLikeKeychain::Address> &addresses) = 0;
+            using TransactionList = std::list<std::shared_ptr<cosmos::Transaction>>;
 
-            virtual Future<std::shared_ptr<BigInt>>
-            getEstimatedGasLimit(const std::shared_ptr<api::CosmosLikeTransaction> &transaction) = 0;
+            CosmosLikeBlockchainExplorer(
+                const std::shared_ptr<ledger::core::api::DynamicObject>
+                    &configuration,
+                const std::vector<std::string> &matchableKeys);
 
-            virtual Future<CosmosLikeBlockchainExplorerAccount> getAccount(const std::string& address) = 0;
-            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::string& filter) = 0;
-            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address, const std::list<std::string>& filters) = 0;
-            virtual Future<std::list<CosmosLikeBlockchainExplorerTransaction>> getTransactions(const std::string &address) = 0;
+
+            virtual const std::vector<TransactionFilter>& getTransactionFilters() = 0;
+            virtual FuturePtr<cosmos::Block> getBlock(uint64_t& blockHeight) = 0;
+            virtual FuturePtr<cosmos::Account> getAccount(const std::string& account) = 0;
+            virtual FuturePtr<cosmos::Block> getCurrentBlock() = 0;
+			virtual Future<cosmos::TransactionList> getTransactions(
+			        const std::string& address, TransactionFilter& filter,
+			        int page, int limit) = 0;
         };
     }
 }

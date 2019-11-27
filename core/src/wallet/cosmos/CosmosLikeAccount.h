@@ -66,10 +66,10 @@ namespace ledger {
 
             void inflateOperation(Operation &out,
                                   const std::shared_ptr<const AbstractWallet> &wallet,
-                                  const CosmosLikeBlockchainExplorerTransaction &tx);
+                                  const cosmos::Transaction &tx);
 
             int putTransaction(soci::session &sql,
-                               const CosmosLikeBlockchainExplorerTransaction &transaction);
+                               const cosmos::Transaction &transaction);
 
             bool putBlock(soci::session &sql, const CosmosLikeBlockchainExplorer::Block &block);
 

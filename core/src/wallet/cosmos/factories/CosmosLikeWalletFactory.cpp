@@ -136,7 +136,7 @@ namespace ledger {
                 auto context = pool->getDispatcher()->getSerialExecutionContext(api::BlockchainObserverEngines::COSMOS_NODE);
                 auto& networkParams = getCurrency().cosmosLikeNetworkParameters.value();
 
-                explorer = std::make_shared<NodeCosmosLikeBlockchainExplorer>(context, http, networkParams, configuration);
+                explorer = nullptr;//std::make_shared<NodeCosmosLikeBlockchainExplorer>(context, http, networkParams, configuration);
             } else {
                 throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "CosmosLikeWalletFactory using non supported explorer");
             }

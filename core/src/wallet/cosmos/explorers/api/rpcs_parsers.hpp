@@ -77,7 +77,7 @@ namespace ledger {
 
             template <class T>
             void parseAccount(const T& accountNode,
-                    CosmosLikeBlockchainExplorerAccount& account) {
+                    cosmos::Account& account) {
                 const auto& node = accountNode["value"].GetObject();
                 account.accountNumber = node["account_number"].GetString();
                 account.sequence = node["sequence"].GetString();
@@ -95,7 +95,7 @@ namespace ledger {
 
             template <class T>
             void parseTransaction(const T& node,
-                    CosmosLikeBlockchainExplorerTransaction& transaction) {
+                    cosmos::Transaction& transaction) {
               transaction.hash = node["txhash"].GetString();
               if (node.HasMember("height")) {
                 Block block;
@@ -107,7 +107,7 @@ namespace ledger {
                 if (node.HasMember("gas_used"))
                     transaction.gasUsed = Option<BigInt>(BigInt::fromString(node["gas_used"].GetString()));
 				for (const auto& lNode : node["logs"].GetArray()) {
-                    CosmosLikeBlockchainExplorerLog log;
+                    cosmos::MessageLog log;
                     log.success = lNode["success"].GetBool();
                     log.log = lNode["log"].GetString();
                     log.messageIndex = BigInt::fromString(lNode["msg_index"].GetString()).toInt();
@@ -123,7 +123,7 @@ namespace ledger {
 
                 for (const auto& mNode : vNode["msg"].GetArray()) {
                     const auto& mvNode = mNode["value"].GetObject();
-                    CosmosLikeBlockchainExplorerMessage message;
+                    cosmos::Message message;
                     message.type = mNode["type"].GetString();
                     // TODO COSMOS Investigate why Amount is an array maybe for multiple currencies?
                     for (const auto& aNode : mvNode["amount"].GetArray())
@@ -133,7 +133,7 @@ namespace ledger {
                     transaction.messages.emplace_back(message);
                 }
                 const auto& fNode =  vNode["fee"].GetObject();
-                transaction.gasLimit = BigInt::fromString(fNode["gas"].GetString());
+                transaction.fee.gas = BigInt::fromString(fNode["gas"].GetString());
 				if (fNode["amount"].IsArray()) {
 					int index = 0;
 					for (const auto &fNode : fNode["amount"].GetArray()) {

@@ -37,8 +37,6 @@
 #include <math/Fibonacci.h>
 #include <utils/JSONUtils.h>
 
-#include <wallet/cosmos/explorers/api/CosmosLikeWebSocketNotificationParser.h>
-
 namespace ledger {
     namespace core {
 
@@ -69,7 +67,7 @@ namespace ledger {
                     .value_or(api::CosmosConfigurationDefaults::COSMOS_OBSERVER_WS_ENDPOINT);
         }
 
-        void CosmosLikeBlockchainObserver::putTransaction(const CosmosLikeBlockchainExplorerTransaction &tx) {
+        void CosmosLikeBlockchainObserver::putTransaction(const cosmos::Transaction &tx) {
             std::lock_guard<std::mutex> lock(_lock);
             for (const auto &account : _accounts) {
                 account->run([account, tx]() {
@@ -137,8 +135,8 @@ namespace ledger {
         void CosmosLikeBlockchainObserver::onMessage(const std::string &message) {
             auto self = shared_from_this();
             run([message, self]() {
-                auto result = JSONUtils::parse<CosmosLikeWebSocketNotificationParser>(message);
-                result->block.currencyName = self->getCurrency().name;
+//                auto result = JSONUtils::parse<CosmosLikeWebSocketNotificationParser>(message);
+//                result->block.currencyName = self->getCurrency().name;
                 throw make_exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "Not implemented");
             });
         }

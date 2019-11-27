@@ -70,6 +70,9 @@ namespace ledger {
             // _accountNumber = tx.accountNumber;
             _memo = tx.memo;
             // _sequence = tx.sequence;
+//            _currency = operation->getAccount()->getWallet()->getCurrency();
+//            _gasPrice = std::make_shared<Amount>(_currency, 0, tx.fee.amount);
+//            _gasLimit = std::make_shared<Amount>(_currency, 0, tx.gasLimit);
 
             if (tx.messages.empty()) {
                 throw Exception(api::ErrorCode::INVALID_ARGUMENT, "No messages while creating Cosmos transaction");

@@ -69,7 +69,7 @@ namespace ledger {
             Option<EthereumLikeBlockchainExplorerTransaction> ethereumTransaction;
             Option<RippleLikeBlockchainExplorerTransaction> rippleTransaction;
             Option<TezosLikeBlockchainExplorerTransaction> tezosTransaction;
-            Option<CosmosLikeBlockchainExplorerTransaction> cosmosTransaction;
+            Option<cosmos::Transaction> cosmosTransaction;
 
             void refreshUid();
 
