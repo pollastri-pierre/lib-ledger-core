@@ -16,7 +16,7 @@ auto CosmosLikeMsgDeposit::fromCpp(JNIEnv* jniEnv, const CppType& c) -> ::djinni
     auto r = ::djinni::LocalRef<JniType>{jniEnv->NewObject(data.clazz.get(), data.jconstructor,
                                                            ::djinni::get(::djinni::String::fromCpp(jniEnv, c.depositor)),
                                                            ::djinni::get(::djinni::String::fromCpp(jniEnv, c.proposalId)),
-                                                           ::djinni::get(::djinni::List<::djinni_generated::CosmosLikeAmount>::fromCpp(jniEnv, c.amounts)))};
+                                                           ::djinni::get(::djinni::List<::djinni_generated::CosmosLikeAmount>::fromCpp(jniEnv, c.amount)))};
     ::djinni::jniExceptionCheck(jniEnv);
     return r;
 }
@@ -27,7 +27,7 @@ auto CosmosLikeMsgDeposit::toCpp(JNIEnv* jniEnv, JniType j) -> CppType {
     const auto& data = ::djinni::JniClass<CosmosLikeMsgDeposit>::get();
     return {::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_depositor)),
             ::djinni::String::toCpp(jniEnv, (jstring)jniEnv->GetObjectField(j, data.field_proposalId)),
-            ::djinni::List<::djinni_generated::CosmosLikeAmount>::toCpp(jniEnv, jniEnv->GetObjectField(j, data.field_amounts))};
+            ::djinni::List<::djinni_generated::CosmosLikeAmount>::toCpp(jniEnv, jniEnv->GetObjectField(j, data.field_amount))};
 }
 
 }  // namespace djinni_generated

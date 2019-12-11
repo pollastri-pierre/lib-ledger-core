@@ -36,6 +36,7 @@
 #include <crypto/SHA256.hpp>
 #include <wallet/common/database/BlockDatabaseHelper.h>
 #include <wallet/currencies.hpp>
+#include <wallet/cosmos/database/soci-cosmos-amount.h>
 
 using namespace soci;
 
@@ -114,88 +115,134 @@ namespace ledger {
             return result;
         }
 
+        static void insertMessage(soci::session& sql, const std::string& txUid, uint64_t index,
+                const cosmos::Message& msg, const cosmos::MessageLog& log) {
+            auto uid = CosmosLikeTransactionDatabaseHelper::createCosmosMessageUid(txUid, index);
+            switch (cosmos::stringToMsgType(msg.type)) {
+                case api::CosmosLikeMsgType::MSGSEND:
+                    {
+                        const auto& m = boost::get<cosmos::MsgSend>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, from_address, to_address, amount)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
+                               use(uid), use(txUid), use(msg.type), use(log.log),
+                               use(log.success ? 1 : 0), use(log.messageIndex),
+                               use(m.fromAddress), use(m.toAddress), use(m.amount);
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGDELEGATE:
+                    {
+                        const auto& m = boost::get<cosmos::MsgDelegate>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, delegator_address, validator_address, amount)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
+                                use(uid), use(txUid), use(msg.type), use(log.log),
+                                use(log.success ? 1 : 0), use(log.messageIndex),
+                                use(m.delegatorAddress), use(m.validatorAddress), use(m.amount);
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGUNDELEGATE:
+                    {
+                        const auto& m = boost::get<cosmos::MsgUndelegate>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, delegator_address, validator_address, amount)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
+                                use(uid), use(txUid), use(msg.type), use(log.log),
+                                use(log.success ? 1 : 0), use(log.messageIndex),
+                                use(m.delegatorAddress), use(m.validatorAddress), use(m.amount);
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGREDELEGATE:
+                    {
+                        const auto& m = boost::get<cosmos::MsgRedelegate>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, delegator_address, validator_src_address,"
+                               "validator_dst_address, amount)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
+                                use(uid), use(txUid), use(msg.type), use(log.log),
+                                use(log.success ? 1 : 0), use(log.messageIndex),
+                                use(m.delegatorAddress), use(m.validatorSourceAddress),
+                                use(m.validatorDestinationAddress), use(m.amount);
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGSUBMITPROPOSAL:
+                    {
+                        const auto& m = boost::get<cosmos::MsgSubmitProposal>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, proposer, content_type,"
+                               "content_title, content_description, amount)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :proposer,"
+                               ":ctype, :ctitle, :cdescription, :amount)",
+                                use(uid), use(txUid), use(msg.type), use(log.log),
+                                use(log.success ? 1 : 0), use(log.messageIndex),
+                                use(m.proposer), use(m.content.type), use(m.content.title),
+                                use(m.content.description), use(m.initialDeposit[0]);
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGVOTE:
+                    {
+                        const auto& m = boost::get<cosmos::MsgVote>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, proposal_id, voter,"
+                               "vote_option)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :pid, :voter, :opt)",
+                                use(uid), use(txUid), use(msg.type), use(log.log),
+                                use(log.success ? 1 : 0), use(log.messageIndex),
+                                use(m.proposalId), use(m.voter),
+                                use(api::to_string(m.option));
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGDEPOSIT:
+                    {
+                        const auto& m = boost::get<cosmos::MsgRedelegate>(msg.content);
+                        sql << "INSERT INTO cosmos_messages (uid,"
+                               "transaction_uid, message_type, log,"
+                               "success, msg_index, delegator_address, validator_src_address,"
+                               "validator_dst_address, amount)"
+                               "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
+                                use(uid), use(txUid), use(msg.type), use(log.log),
+                                use(log.success ? 1 : 0), use(log.messageIndex),
+                                use(m.delegatorAddress), use(m.validatorSourceAddress),
+                                use(m.validatorDestinationAddress), use(m.amount);
+                    }
+                    break;
+                case api::CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD:break;
+                case api::CosmosLikeMsgType::UNKNOWN:break;
+            }
+        }
+
         std::string CosmosLikeTransactionDatabaseHelper::putTransaction(soci::session &sql,
                                                                         const std::string &accountUid,
                                                                         const cosmos::Transaction &tx) {
-//            auto blockUid = tx.block.map<std::string>([](const CosmosLikeBlockchainExplorer::Block &block) {
-//                return block.getUid();
-//            });
-//
-//            auto cosmosTxUid = createCosmosTransactionUid(accountUid, tx.hash);
-//
-//            if (transactionExists(sql, cosmosTxUid)) {
-//                // UPDATE (we only update block information)
-//                if (tx.block.nonEmpty()) {
-//                    sql << "UPDATE cosmos_transactions SET block_uid = :uid WHERE hash = :tx_hash",
-//                            use(blockUid), use(tx.hash);
-//                }
-//                return cosmosTxUid;
-//            } else {
-//                // Insert
-//                if (tx.block.nonEmpty()) {
-//                    BlockDatabaseHelper::putBlock(sql, tx.block.getValue());
-//                }
-//
-//                auto gasPrice = tx.gasPrice.toString();
-//                auto gasLimit = tx.gasLimit.toString();
-//                auto gasUsed = tx.gasUsed->toString();
-//                sql << "INSERT INTO cosmos_transactions VALUES(:tx_uid, :hash, :block_uid, :time, :gas_price, :gas_limit, :memo, :gas_used)",
-//                        use(cosmosTxUid),
-//                        use(tx.hash),
-//                        use(blockUid),
-//                        use(tx.timestamp),
-//                        use(gasPrice),
-//                        use(gasPrice),
-//                        use(tx.memo),
-//                        use(gasUsed);
-//
-//                std::string type;
-//                std::string sender;
-//                std::string recipient;
-//                BigInt amount;
-//                BigInt fees;
-//
-//                int msgIndex = 0;
-//                std::list<CosmosLikeBlockchainExplorerMessage>::iterator it;
-//
-//                std::for_each(tx.messages.begin(), tx.messages.end(), [&](const CosmosLikeBlockchainExplorerMessage &msg) {
-//                    auto amount = msg.amount.toString();
-//                    auto fees = msg.fees.toString();
-//
-//                    // TODO COSMOS Right hardcoded to use onely one msg log
-//                    auto uid = createCosmosMessageUid(cosmosTxUid, msgIndex);
-//                    auto isSuccess = tx.logs.front().success ? 1 : 0;
-//                    auto logMessage = tx.logs.front().log;
-//                    sql << "INSERT INTO cosmos_messages VALUES (:uid, :tx_uid, :message_type, :from_address, :to_address, :amount_value, :fees, :log, :success, :msg_index)",
-//                            use(uid),
-//                            use(cosmosTxUid),
-//                            use(msg.type),
-//                            use(msg.sender),
-//                            use(msg.recipient),
-//                            use(amount),
-//                            use(fees),
-//                            use(logMessage),
-//                            use(isSuccess),
-//                            use(msgIndex);
-//                    ++msgIndex;
-//                });
-//                for (it = tx.messages.begin(); it != tx.messages.end(); ++it) {
-//                    auto amount = it->amount.toString();
-//                    auto fees = it->fees.toString();
-//                    sql << "INSERT INTO cosmos_messages VALUES (:tx_uid, :message_type, :from_address, :to_address, :amount_value, :fees, :log, :success, :msg_index)",
-//                            use(cosmosTxUid),
-//                            use(it->type),
-//                            use(it->sender),
-//                            use(it->recipient),
-//                            use(amount),
-//                            use(fees),
-//                            use(msgIndex);
-//
-//                    ++msgIndex;
-//                }
+            auto blockUid = tx.block.map<std::string>([](const CosmosLikeBlockchainExplorer::Block &block) {
+                return block.getUid();
+            });
 
-                //return cosmosTxUid;
-            //}
+            auto cosmosTxUid = createCosmosTransactionUid(accountUid, tx.hash);
+
+            if (transactionExists(sql, cosmosTxUid)) {
+                // UPDATE (we only update block information)
+                if (tx.block.nonEmpty() && tx.block.getValue().hash.size() > 0) {
+                    sql << "UPDATE cosmos_transactions SET block_uid = :uid WHERE hash = :tx_hash",
+                            use(blockUid), use(tx.hash);
+                }
+                return cosmosTxUid;
+            } else {
+                // Insert
+                if (tx.block.nonEmpty()) {
+                    BlockDatabaseHelper::putBlock(sql, tx.block.getValue());
+                }
+
+
+
+                return cosmosTxUid;
+            }
         }
     }
 }

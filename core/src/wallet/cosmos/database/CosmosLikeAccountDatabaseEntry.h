@@ -33,11 +33,15 @@
 #define LEDGER_CORE_COSMOSLIKEACCOUNTDATABASEENTRY_H
 
 #include <string>
+#include <wallet/cosmos/cosmos.h>
+
 namespace ledger {
     namespace core {
         struct CosmosLikeAccountDatabaseEntry {
             int32_t index;
             std::string address;
+            cosmos::Account details;
+            std::chrono::system_clock::time_point lastUpdate;
         };
     }
 }

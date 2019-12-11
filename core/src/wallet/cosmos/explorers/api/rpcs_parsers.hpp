@@ -37,6 +37,10 @@
 #include <utils/Option.hpp>
 #include <wallet/currencies.hpp>
 #include <utils/DateUtils.hpp>
+#include <wallet/cosmos/CosmosLikeConstants.hpp>
+
+#define COSMOS_PARSE_MSG_CONTENT(MsgType) if (out.type == "cosmos-sdk/"#MsgType) return parse##MsgType(contentNode, out.content);
+
 
 namespace ledger {
     namespace core {
@@ -53,18 +57,19 @@ namespace ledger {
             }
 
             template <class T>
-            void parseAmountField(const T& node, BigInt& out) {
-                auto amount = BigInt::fromString(node["amount"].GetString());
-                auto denom = node["denom"].GetString();
+            void parseCoin(const T& node, cosmos::Coin& out) {
+                out.amount = node["amount"].GetString();
+                out.denom = node["denom"].GetString();
+            }
 
-                auto unit = std::find_if(currencies::COSMOS.units.begin(), currencies::COSMOS.units.end(), [&] (const api::CurrencyUnit &unit) {
-                    return unit.name == denom;
-                });
-                if (unit == currencies::COSMOS.units.end()) {
-                    throw Exception(api::ErrorCode::INVALID_ARGUMENT, "Unknown unit while parsing transaction");
+            template <typename T>
+            void parseCoinVector(const T& array, std::vector<cosmos::Coin>& out) {
+                out.assign((std::size_t) array.Size(), cosmos::Coin());
+                auto index = 0;
+                for (const auto& n : array) {
+                    parseCoin(n.GetObject(), out[index]);
+                    index += 1;
                 }
-                //TODO: Fix Amount::toUnit and use right unit
-                out = BigInt(amount) * BigInt(10).pow(static_cast<unsigned short>((*unit).numberOfDecimal));
             }
 
             template <class T>
@@ -75,6 +80,27 @@ namespace ledger {
                 out.time = DateUtils::fromJSON(node["block_meta"].GetObject()["header"].GetObject()["time"].GetString());
             }
 
+            template <typename T>
+            void parseProposalContent(const T& node, cosmos::ProposalContent& out) {
+                out.type = node[constants::kType].GetString();
+                out.description = node[constants::kDescription].GetString();
+                out.title = node[constants::kTitle].GetString();
+            }
+
+            template <typename T>
+            void parseFee(const T& node, cosmos::Fee& out) {
+                out.gas = BigInt::fromString(node["gas"].GetString());
+                if (node["amount"].IsArray()) {
+                    const auto& amountArray = node["amount"].GetArray();
+                    out.amount.assign((std::size_t) amountArray.Capacity(), cosmos::Coin());
+                    auto index = 0;
+                    for (const auto& aNode : amountArray) {
+                        parseCoin(aNode.GetObject(), out.amount[index]);
+                        index += 1;
+                    }
+                }
+            }
+
             template <class T>
             void parseAccount(const T& accountNode,
                     cosmos::Account& account) {
@@ -83,26 +109,121 @@ namespace ledger {
                 account.sequence = node["sequence"].GetString();
                 account.address = node["address"].GetString();
                 account.type = accountNode["type"].GetString();
-                if (node["coins"].IsArray()) {
-                    const auto& balances = node["coins"].GetArray();
-                    for (const auto& balance : balances) {
-                        BigInt value;
-                        parseAmountField(balance.GetObject(), value);
-                        account.balances.emplace_back(value);
-                    }
+                const auto& balances = node["coins"].GetArray();
+                parseCoinVector(balances, account.balances);
+            }
+
+            template <typename T>
+            void parseMsgSend(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgSend msg;
+
+                msg.fromAddress = n[constants::kFromAddress].GetString();
+                msg.toAddress = n[constants::kToAddress].GetString();
+                parseCoinVector(n[constants::kAmount].GetArray(), msg.amount);
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgDelegate(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgDelegate msg;
+
+                msg.delegatorAddress = n[constants::kDelegatorAddress].GetString();
+                msg.validatorAddress = n[constants::kValidatorAddress].GetString();
+                parseCoin(n[constants::kAmount].GetObject(), msg.amount);
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgRedelegate(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgRedelegate msg;
+
+                msg.delegatorAddress = n[constants::kDelegatorAddress].GetString();
+                msg.validatorSourceAddress = n[constants::kValidatorSrcAddress].GetString();
+                msg.validatorDestinationAddress = n[constants::kValidatorDstAddress].GetString();
+                parseCoin(n[constants::kAmount].GetObject(), msg.amount);
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgUndelegate(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgUndelegate msg;
+
+                msg.delegatorAddress = n[constants::kDelegatorAddress].GetString();
+                msg.validatorAddress = n[constants::kValidatorAddress].GetString();
+                parseCoin(n[constants::kAmount].GetObject(), msg.amount);
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgSubmitProposal(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgSubmitProposal msg;
+
+                msg.proposer = n[constants::kProposer].GetString();
+                parseProposalContent(n[constants::kContent].GetObject(), msg.content);
+                parseCoinVector(n[constants::kInitialDeposit].GetArray(), msg.initialDeposit);
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgVote(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgVote msg;
+
+                msg.voter = n[constants::kVoter].GetString();
+                msg.proposalId = n[constants::kProposalId].GetString();
+                const auto& option = n[constants::kOption].GetString();
+                if (option == "Yes") {
+                    msg.option = cosmos::VoteOption::YES;
+                } else if (option == "No") {
+                    msg.option = cosmos::VoteOption::NO;
+                } else if (option == "NoWithVeto") {
+                    msg.option = cosmos::VoteOption::NOWITHVETO;
+                } else if (option == "Abstain") {
+                    msg.option = cosmos::VoteOption::ABSTAIN;
                 }
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgDeposit(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgDeposit msg;
+
+                msg.depositor = n[constants::kDepositor].GetString();
+                msg.proposalId = n[constants::kProposalId].GetString();
+                parseCoinVector(n[constants::kAmount].GetArray(), msg.amount);
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMsgWithdrawDelegationReward(const T& n, cosmos::MessageContent &out) {
+                cosmos::MsgWithdrawDelegationReward msg;
+
+                msg.delegatorAddress = n[constants::kDelegatorAddress].GetString();
+                msg.validatorAddress = n[constants::kValidatorAddress].GetString();
+                out = msg;
+            }
+
+            template <typename T>
+            void parseMessage(const T& messageNode, cosmos::Message& out) {
+                out.type = messageNode["type"].GetString();
+                const auto& contentNode = messageNode["value"].GetObject();
+                COSMOS_PARSE_MSG_CONTENT(MsgSend)
+                COSMOS_PARSE_MSG_CONTENT(MsgDelegate)
+                COSMOS_PARSE_MSG_CONTENT(MsgRedelegate)
+                COSMOS_PARSE_MSG_CONTENT(MsgUndelegate)
+                COSMOS_PARSE_MSG_CONTENT(MsgSubmitProposal)
+                COSMOS_PARSE_MSG_CONTENT(MsgVote)
+                COSMOS_PARSE_MSG_CONTENT(MsgDeposit)
+                COSMOS_PARSE_MSG_CONTENT(MsgWithdrawDelegationReward)
             }
 
             template <class T>
             void parseTransaction(const T& node,
                     cosmos::Transaction& transaction) {
-              transaction.hash = node["txhash"].GetString();
-              if (node.HasMember("height")) {
-                Block block;
-                block.height =
-                    BigInt::fromString(node["height"].GetString()).toUint64();
-                // TODO: set rest of block data
-                transaction.block = block;
+                transaction.hash = node["txhash"].GetString();
+                if (node.HasMember("height")) {
+                    Block block;
+                    block.height = BigInt::fromString(node["height"].GetString()).toUint64();
+                    transaction.block = block;
                 }
                 if (node.HasMember("gas_used"))
                     transaction.gasUsed = Option<BigInt>(BigInt::fromString(node["gas_used"].GetString()));
@@ -118,34 +239,24 @@ namespace ledger {
                 const auto& tNode = node["tx"].GetObject();
                 const auto& vNode = tNode["value"].GetObject();
 
-                if (vNode.HasMember("memo"))
+                if (vNode.HasMember("memo")) {
                     transaction.memo = vNode["memo"].GetString();
-
-                for (const auto& mNode : vNode["msg"].GetArray()) {
-                    const auto& mvNode = mNode["value"].GetObject();
-                    cosmos::Message message;
-                    message.type = mNode["type"].GetString();
-                    // TODO COSMOS Investigate why Amount is an array maybe for multiple currencies?
-                    for (const auto& aNode : mvNode["amount"].GetArray())
-                        parseAmountField(aNode.GetObject(), message.amount);
-                    message.sender = getStringFromVariableKeys(mvNode, {"from_address", "delegator_address"});
-                    message.recipient = getStringFromVariableKeys(mvNode, {"to_address", "validator_address"});
-                    transaction.messages.emplace_back(message);
                 }
-                const auto& fNode =  vNode["fee"].GetObject();
-                transaction.fee.gas = BigInt::fromString(fNode["gas"].GetString());
-				if (fNode["amount"].IsArray()) {
-					int index = 0;
-					for (const auto &fNode : fNode["amount"].GetArray()) {
-						BigInt amount;
-						parseAmountField(fNode, transaction.messages[index].fees);
-						index += 1;
-					}
-				}
+
+                if (vNode["msg"].IsArray()) {
+                    const auto& msgArray = vNode["msg"].GetArray();
+                    transaction.messages.assign((std::size_t) msgArray.Capacity(), cosmos::Message());
+                    auto index = 0;
+                    for (const auto &mNode : vNode["msg"].GetArray()) {
+                        parseMessage(mNode, transaction.messages[index]);
+                    }
+                }
+                parseFee(vNode["fee"].GetObject(), transaction.fee);
             }
 
         }
     }
 }
 
+#undef COSMOS_PARSE_MSG_CONTENT
 #endif //LEDGER_CORE_RPCS_PARSERS_HPP

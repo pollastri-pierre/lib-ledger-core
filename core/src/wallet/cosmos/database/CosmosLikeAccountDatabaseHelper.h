@@ -42,12 +42,14 @@ namespace ledger {
         class CosmosLikeAccountDatabaseHelper {
         public:
             static void createAccount(soci::session& sql,
-                                      const std::string walletUid,
+                                      const std::string& walletUid,
                                       int32_t index,
                                       const std::string& address);
             static bool queryAccount(soci::session& sql,
                                      const std::string& accountUid,
                                      CosmosLikeAccountDatabaseEntry& entry);
+            static void updateAccount(soci::session& sql, const std::string& accountUid,
+                                      const CosmosLikeAccountDatabaseEntry& entry);
         };
     }
 }

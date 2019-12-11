@@ -34,6 +34,15 @@
 #include <math/BigInt.h>
 #include <wallet/common/Block.h>
 #include <api/CosmosLikeMsgType.hpp>
+#include <api/CosmosLikeMsgSend.hpp>
+#include <api/CosmosLikeMsgDelegate.hpp>
+#include <api/CosmosLikeMsgRedelegate.hpp>
+#include <api/CosmosLikeMsgUndelegate.hpp>
+#include <api/CosmosLikeMsgSubmitProposal.hpp>
+#include <api/CosmosLikeMsgVote.hpp>
+#include <api/CosmosLikeMsgDeposit.hpp>
+#include <api/CosmosLikeMsgWithdrawDelegationReward.hpp>
+
 
 namespace ledger {
 	namespace core {
@@ -41,19 +50,33 @@ namespace ledger {
 
 		    using Block = ledger::core::Block;
 
-			/**
-			  Message is a flat representation of cosmos message meaning that all fields in this struct are not used by
-			  each message but this class could be seen as a union of all fields of all messages.
-			 */
+            using ProposalContent = api::CosmosLikeContent;
+            using VoteOption = api::CosmosLikeVoteOption;
+
+            using Coin = api::CosmosLikeAmount;
+		    using MsgSend = api::CosmosLikeMsgSend;
+		    using MsgDelegate = api::CosmosLikeMsgDelegate;
+		    using MsgUndelegate = api::CosmosLikeMsgUndelegate;
+		    using MsgRedelegate = api::CosmosLikeMsgRedelegate;
+		    using MsgSubmitProposal = api::CosmosLikeMsgSubmitProposal;
+		    using MsgVote = api::CosmosLikeMsgVote;
+		    using MsgDeposit = api::CosmosLikeMsgDeposit;
+		    using MsgWithdrawDelegationReward = api::CosmosLikeMsgWithdrawDelegationReward;
+
+		    using MessageContent = boost::variant<
+		            MsgSend,
+		            MsgDelegate,
+		            MsgRedelegate,
+		            MsgUndelegate,
+		            MsgSubmitProposal,
+		            MsgVote,
+		            MsgDeposit,
+		            MsgWithdrawDelegationReward
+		            >;
+
 			struct Message {
-				std::string type;
-				/**
-				   Is either sender
-				 */
-				std::string sender;
-				std::string recipient;
-				BigInt amount;
-				BigInt fees;
+                std::string type;
+                MessageContent content;
 			};
 
 			/**
@@ -64,15 +87,6 @@ namespace ledger {
 				int32_t messageIndex;
 				bool success;
 				std::string log;
-			};
-
-			/**
-			   This struct is basically the same as the one in CosmosSDK source code (sdk.Coin). Coin is the representation of an amount.
-			   Amounts can be expressed using different denomination and a value (the amount field)
-			 */
-			struct Coin {
-				std::string denom;
-				BigInt amount; // int in cosmos sdk codebase, we use BigInt here because they have a lot of safeguard to prevent overflows.
 			};
 
 			/**
@@ -108,6 +122,8 @@ namespace ledger {
 			using TransactionList = std::list<std::shared_ptr<Transaction>>;
 			using MsgType = api::CosmosLikeMsgType;
 
+			std::string msgTypeToString(MsgType type);
+			MsgType stringToMsgType(const std::string& string);
 		}
 	}
 }

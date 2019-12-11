@@ -29,7 +29,7 @@ private:
     const jmethodID jconstructor { ::djinni::jniGetMethodID(clazz.get(), "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/util/ArrayList;)V") };
     const jfieldID field_depositor { ::djinni::jniGetFieldID(clazz.get(), "depositor", "Ljava/lang/String;") };
     const jfieldID field_proposalId { ::djinni::jniGetFieldID(clazz.get(), "proposalId", "Ljava/lang/String;") };
-    const jfieldID field_amounts { ::djinni::jniGetFieldID(clazz.get(), "amounts", "Ljava/util/ArrayList;") };
+    const jfieldID field_amount { ::djinni::jniGetFieldID(clazz.get(), "amount", "Ljava/util/ArrayList;") };
 };
 
 }  // namespace djinni_generated

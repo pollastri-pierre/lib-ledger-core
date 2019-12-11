@@ -37,7 +37,7 @@
 #include <api/BlockchainObserverEngines.hpp>
 #include <api/ConfigurationDefaults.hpp>
 
-#include <wallet/cosmos/explorers/NodeCosmosLikeBlockchainExplorer.h>
+#include <wallet/cosmos/explorers/GaiaCosmosLikeBlockchainExplorer.hpp>
 #include <wallet/cosmos/factories/CosmosLikeKeychainFactory.h>
 #include <wallet/cosmos/CosmosLikeWallet.h>
 #include <wallet/pool/WalletPool.hpp>
@@ -136,7 +136,8 @@ namespace ledger {
                 auto context = pool->getDispatcher()->getSerialExecutionContext(api::BlockchainObserverEngines::COSMOS_NODE);
                 auto& networkParams = getCurrency().cosmosLikeNetworkParameters.value();
 
-                explorer = nullptr;//std::make_shared<NodeCosmosLikeBlockchainExplorer>(context, http, networkParams, configuration);
+                explorer = std::make_shared<GaiaCosmosLikeBlockchainExplorer>(context, http, networkParams,
+                        std::dynamic_pointer_cast<DynamicObject>(configuration));
             } else {
                 throw Exception(api::ErrorCode::IMPLEMENTATION_IS_MISSING, "CosmosLikeWalletFactory using non supported explorer");
             }

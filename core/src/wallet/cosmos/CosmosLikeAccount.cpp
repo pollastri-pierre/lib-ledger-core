@@ -107,36 +107,36 @@ namespace ledger {
             auto address = getKeychain()->getAddress()->toBech32();
              CosmosLikeTransactionDatabaseHelper::putTransaction(sql, getAccountUid(), tx);
 
-             Operation operation;
-             inflateOperation(operation, getWallet(), tx);
-
-             for (const auto& msg : tx.messages) {
-                 operation.senders = {msg.sender};
-                 operation.recipients = {msg.recipient};
-                 operation.amount = msg.amount;
-                 operation.fees = Option<BigInt>(msg.fees);
-
-                 if (msg.sender == address) {
-                     // Do the send operation
-                     operation.type = api::OperationType::SEND;
-                     operation.refreshUid();
-                     if (OperationDatabaseHelper::putOperation(sql, operation)) {
-                         emitNewOperationEvent(operation);
-                     }
-                     result = static_cast<int>(operation.type);
-                 }
-
-                 if (msg.recipient == address) {
-                     // Do the receive operation
-                     operation.type = api::OperationType::RECEIVE;
-                     operation.refreshUid();
-                     if (OperationDatabaseHelper::putOperation(sql, operation)) {
-                         emitNewOperationEvent(operation);
-                     }
-                     result = static_cast<int>(operation.type);
-                 }
-
-             }
+//             Operation operation;
+//             inflateOperation(operation, getWallet(), tx);
+//
+//             for (const auto& msg : tx.messages) {
+//                 operation.senders = {msg.sender};
+//                 operation.recipients = {msg.recipient};
+//                 operation.amount = msg.amount;
+//                 operation.fees = Option<BigInt>(msg.fees);
+//
+//                 if (msg.sender == address) {
+//                     // Do the send operation
+//                     operation.type = api::OperationType::SEND;
+//                     operation.refreshUid();
+//                     if (OperationDatabaseHelper::putOperation(sql, operation)) {
+//                         emitNewOperationEvent(operation);
+//                     }
+//                     result = static_cast<int>(operation.type);
+//                 }
+//
+//                 if (msg.recipient == address) {
+//                     // Do the receive operation
+//                     operation.type = api::OperationType::RECEIVE;
+//                     operation.refreshUid();
+//                     if (OperationDatabaseHelper::putOperation(sql, operation)) {
+//                         emitNewOperationEvent(operation);
+//                     }
+//                     result = static_cast<int>(operation.type);
+//                 }
+//
+//             }
 
             // Operation operation;
             // inflateOperation(operation, wallet, transaction);

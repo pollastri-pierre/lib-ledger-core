@@ -705,7 +705,12 @@ namespace ledger {
                     "uid VARCHAR(255) NOT NULL PRIMARY KEY REFERENCES accounts(uid) ON DELETE CASCADE ON UPDATE CASCADE,"
                     "wallet_uid VARCHAR(255) NOT NULL REFERENCES wallets(uid) ON DELETE CASCADE ON UPDATE CASCADE,"
                     "idx INTEGER NOT NULL,"
-                    "address VARCHAR(255) NOT NULL"
+                    "address VARCHAR(255) NOT NULL,"
+                    "account_type VARCHAR(255),"
+                    "account_number VARCHAR(255),"
+                    "sequence VARCHAR(255),"
+                    "balances VARCHAR(255),"
+                    "last_update TEXT"
                     ")";
 
             sql << "CREATE TABLE cosmos_transactions("
@@ -713,10 +718,10 @@ namespace ledger {
                     "hash VARCHAR(255) NOT NULL,"
                     "block_uid VARCHAR(255) REFERENCES blocks(uid) ON DELETE CASCADE,"
                     "time VARCHAR(255) NOT NULL,"
-                    "gas_price VARCHAR(255) NOT NULL,"
-                    "gas_limit VARCHAR(255) NOT NULL,"
-                    "memo TEXT,"
-                    "gas_used VARCHAR(255)"
+                    "fee_amount VARCHAR(255) NOT NULL,"
+                    "gas VARCHAR(255) NOT NULL,"
+                    "gas_used VARCHAR(255),"
+                    "memo TEXT"
                     ")";
 
             sql << "CREATE TABLE cosmos_messages("
@@ -724,13 +729,30 @@ namespace ledger {
                     "transaction_uid VARCHAR(255) NOT NULL "
                     "REFERENCES cosmos_transactions(transaction_uid) ON DELETE CASCADE ON UPDATE CASCADE,"
                     "message_type VARCHAR(255) NOT NULL,"
-                    "from_address VARCHAR(255) NOT NULL,"
-                    "to_address VARCHAR(255) NOT NULL,"
-                    "amount_value VARCHAR(255) NOT NULL,"
-                    "fees VARCHAR(255) NOT NULL,"
                     "log TEXT,"
                     "success INTEGER,"
-                    "msg_index INTEGER NOT NULL"
+                    "msg_index INTEGER NOT NULL,"
+                    // MsgSend
+                    "from_address VARCHAR(255),"
+                    "to_address VARCHAR(255),"
+                    "amount_value VARCHAR(255),"
+                    // MsgDelegate
+                    "delegator_address VARCHAR(255),"
+                    "validator_address VARCHAR(255),"
+                    // MsgRedelegate
+                    "validator_src_address VARCHAR(255),"
+                    "validator_dst_address VARCHAR(255),"
+                    // MsgSubmitProposal
+                    "content_type TEXT,"
+                    "content_title TEXT,"
+                    "content_description TEXT,"
+                    "proposer VARCHAR(255),"
+                    // MsgVote
+                    "voter VARCHAR(40),"
+                    "proposal_id VARCHAR(255),"
+                    "vote_option VARCHAR(255),"
+                    // MsgDeposit
+                    "depositor VARCHAR(255)"
                     ")";
 
             sql << "CREATE TABLE cosmos_operations("
@@ -750,79 +772,6 @@ namespace ledger {
             sql << "DROP TABLE cosmos_currencies";
 
             sql << "DROP TABLE cosmos_messages";
-        }
-
-        template <> void migrate<18>(soci::session& sql) {
-            sql << "ALTER TABLE cosmos_messages "
-                   "DROP COLUMN amount_value,"
-                   "DROP COLUMN fees";
-
-            sql << "ALTER TABLE cosmos_messages "
-                   "ALTER COLUMN from_address VARCHAR(255),"
-                   "ALTER COLUMN to_address VARCHAR(255)";
-
-            sql << "ALTER TABLE cosmos_messages ADD "
-                   // MsgDelegate
-                   "delegator_address VARCHAR(255),"
-                   "validator_address VARCHAR(255),"
-                   // MsgRedelegate
-                   "validator_src_address VARCHAR(255),"
-                   "validator_dst_address VARCHAR(255),"
-                   // MsgSubmitProposal
-                   "content_title VARCHAR(255),"
-                   "content_description VARCHAR(255),"
-                   "proposer VARCHAR(255),"
-                   // MsgVote
-                   "voter VARCHAR(255),"
-                   "proposal_id INTEGER,"  
-                   // MsgDeposit
-                   "depositor VARCHAR(255)";
-
-            sql << "ALTER TABLE cosmos_transactions "
-                   "DROP COLUMN gas_price,"
-                   "DROP COLUMN gas_limit,"
-                   "DROP COLUMN gas_used";
-
-            sql << "ALTER TABLE cosmos_transactions ADD gas INTEGER";
-
-            sql << "CREATE TABLE cosmos_amounts("
-                   "transaction_uid VARCHAR(255) NOT NULL "
-                   "REFERENCES cosmos_transactions(transaction_uid) ON DELETE CASCADE ON UPDATE CASCADE,"
-                   "message_uid VARCHAR(255) "
-                   "REFERENCES cosmos_messages(uid) ON DELETE CASCADE ON UPDATE CASCADE,"
-                   "amount VARCHAR(255) NOT NULL,"
-                   "denom VARCHAR(255) NOT NULL)";
-        }
-
-        template <> void rollback<18>(soci::session& sql) {
-            sql << "DROP TABLE cosmos_amounts";
-
-            sql << "ALTER TABLE cosmos_transactions DROP COLUMN gas";
-
-            sql << "ALTER TABLE cosmos_transactions ADD "
-                   "gas_price VARCHAR(255) NOT NULL,"
-                   "gas_limit VARCHAR(255) NOT NULL,"
-                   "gas_used VARCHAR(255)";
-
-            sql << "ALTER TABLE cosmos_messages "
-                   "DROP COLUMN depositor,"
-                   "DROP COLUMN proposal_id,"
-                   "DROP COLUMN voter,"
-                   "DROP COLUMN proposer,"
-                   "DROP COLUMN content_description,"
-                   "DROP COLUMN content_title,"
-                   "DROP COLUMN validator_dst_address,"
-                   "DROP COLUMN validator_src_address,"
-                   "DROP COLUMN validator_address,"
-                   "DROP COLUMN delegator_address";
-
-            sql << "ALTER TABLE cosmos_messages "
-                   "ALTER COLUMN from_address VARCHAR(255) NOT NULL,"
-                   "ALTER COLUMN to_address VARCHAR(255) NOT NULL";
-
-            sql << "ALTER TABLE cosmos_messages ADD "
-                   "amount_value VARCHAR(255) NOT NULL,"
-                   "fees VARCHAR(255) NOT NULL";
         }
     }
 }

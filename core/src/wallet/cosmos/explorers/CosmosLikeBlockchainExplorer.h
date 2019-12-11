@@ -56,11 +56,7 @@ namespace ledger {
         class CosmosLikeBlockchainExplorer : public ConfigurationMatchable {
         public:
             typedef ledger::core::Block Block;
-
-            struct TransactionFilter {
-                std::string filter;
-                cosmos::MsgType msgType;
-            };
+            typedef std::string TransactionFilter;
 
             using TransactionList = std::list<std::shared_ptr<cosmos::Transaction>>;
 

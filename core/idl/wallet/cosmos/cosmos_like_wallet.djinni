@@ -23,7 +23,7 @@ CosmosLikeVoteOption = enum {
 CosmosLikeMsgSend = record {
     fromAddress: string;
     toAddress: string;
-    amounts: list<CosmosLikeAmount>;
+    amount: list<CosmosLikeAmount>;
 }
 
 CosmosLikeMsgDelegate = record {
@@ -60,7 +60,7 @@ CosmosLikeMsgVote = record {
 CosmosLikeMsgDeposit = record {
     depositor: string;
     proposalId: string;
-    amounts: list<CosmosLikeAmount>;
+    amount: list<CosmosLikeAmount>;
 }
 
 CosmosLikeMsgWithdrawDelegationReward = record {

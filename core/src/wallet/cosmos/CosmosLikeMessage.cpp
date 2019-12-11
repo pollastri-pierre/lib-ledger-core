@@ -47,14 +47,14 @@ namespace ledger {
 		using namespace constants;
 		namespace {
 			// a closure helper that check if a `DynamicObject` holds a specific key
-			inline auto containsKeys(std::shared_ptr<api::DynamicObject> object) {
+			inline auto containsKeys(const std::shared_ptr<api::DynamicObject>& object) {
 				return [=](auto const& key) {
 					return object->contains(key);
 				};
 			}
 
 			// add a `CosmosLikeAmount` to a `DynamicObject`
-			inline auto addAmount(std::shared_ptr<api::DynamicObject> object, api::CosmosLikeAmount const& amount) {
+			inline auto addAmount(const std::shared_ptr<api::DynamicObject>& object, api::CosmosLikeAmount const& amount) {
 				auto amountObject = std::make_shared<::ledger::core::DynamicObject>();
 
 				amountObject->putString(kAmount, amount.amount);
@@ -64,7 +64,7 @@ namespace ledger {
 			}
 
 			// add a `CosmosLikeAmount` to a `DynamicArray`
-			inline auto addAmount(std::shared_ptr<api::DynamicArray> array, api::CosmosLikeAmount const& amount) {
+			inline auto addAmount(const std::shared_ptr<api::DynamicArray>& array, api::CosmosLikeAmount const& amount) {
 				auto amountObject = std::make_shared<::ledger::core::DynamicObject>();
 
 				amountObject->putString(kAmount, amount.amount);
@@ -122,7 +122,7 @@ namespace ledger {
 			value->putString(kToAddress, msg.toAddress);
 			value->putArray(kAmount, amounts);
 			
-			std::for_each(std::cbegin(msg.amounts), std::cend(msg.amounts), [&amounts](auto const& amount) {
+			std::for_each(std::cbegin(msg.amount), std::cend(msg.amount), [&amounts](auto const& amount) {
 				addAmount(amounts, amount);
 			});
 
@@ -165,7 +165,7 @@ namespace ledger {
 						throw Exception(api::ErrorCode::RUNTIME_ERROR, "unable to unwrap MsgSend: bad amount fields");
 					}
 
-					underlyingMsg.amounts.push_back(CosmosLikeAmount{
+					underlyingMsg.amount.push_back(CosmosLikeAmount{
 						amount->getString(kAmount).value(),
 						amount->getString(kDenom).value()
 					});
@@ -503,7 +503,7 @@ namespace ledger {
 			value->putString(kProposalId, msg.proposalId);
 			value->putArray(kAmount, amounts);
 
-			std::for_each(std::cbegin(msg.amounts), std::cend(msg.amounts), [&amounts](auto const& amount) {
+			std::for_each(std::cbegin(msg.amount), std::cend(msg.amount), [&amounts](auto const& amount) {
 				addAmount(amounts, amount);
 			});	
 
@@ -546,7 +546,7 @@ namespace ledger {
 						throw Exception(api::ErrorCode::RUNTIME_ERROR, "unable to unwrap MsgDeposit: bad amount fields");
 					}
 
-					underlyingMsg.amounts.push_back(CosmosLikeAmount{
+					underlyingMsg.amount.push_back(CosmosLikeAmount{
 						amount->getString(kAmount).value(),
 						amount->getString(kDenom).value()
 					});
