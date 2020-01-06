@@ -779,14 +779,22 @@ namespace ledger {
         }
 
         template <> void rollback<18>(soci::session& sql) {
+            // Stellar ledgers
+            sql << "DROP TABLE stellar_ledgers";
+            // Stellar account operations
+            sql << "DROP TABLE stellar_account_operations";
             // Stellar operations
             sql << "DROP TABLE stellar_operations";
             // Stellar transactions
             sql << "DROP TABLE stellar_transactions";
+            // Stellar balances per account
+            sql << "DROP TABLE stellar_account_balances";
             // Stellar accounts
             sql << "DROP TABLE stellar_accounts";
-            // Stellar operations
-            sql << "DROP TABLE stellar_operations";
+            // Stellar assets
+            sql << "DROP TABLE stellar_assets";
+            // Stellar currencies
+            sql << "DROP TABLE stellar_currencies";
         }
 
     }
