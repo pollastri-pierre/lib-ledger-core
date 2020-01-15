@@ -36,7 +36,7 @@
 #include <crypto/SHA256.hpp>
 #include <wallet/common/database/BlockDatabaseHelper.h>
 #include <wallet/currencies.hpp>
-#include <wallet/cosmos/database/soci-cosmos-amount.h>
+#include <wallet/cosmos/database/soci-cosmos-amount.hpp>
 
 using namespace soci;
 
@@ -122,13 +122,14 @@ namespace ledger {
                 case api::CosmosLikeMsgType::MSGSEND:
                     {
                         const auto& m = boost::get<cosmos::MsgSend>(msg.content);
+                        std::string coins = soci::coinsToString(m.amount);
                         sql << "INSERT INTO cosmos_messages (uid,"
                                "transaction_uid, message_type, log,"
-                               "success, msg_index, from_address, to_address, amount)"
+                               "success, msg_index, from_address, to_address, amount) "
                                "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
                                use(uid), use(txUid), use(msg.type), use(log.log),
                                use(log.success ? 1 : 0), use(log.messageIndex),
-                               use(m.fromAddress), use(m.toAddress), use(m.amount);
+                               use(m.fromAddress), use(m.toAddress), use(coins);
                     }
                     break;
                 case api::CosmosLikeMsgType::MSGDELEGATE:
@@ -136,7 +137,7 @@ namespace ledger {
                         const auto& m = boost::get<cosmos::MsgDelegate>(msg.content);
                         sql << "INSERT INTO cosmos_messages (uid,"
                                "transaction_uid, message_type, log,"
-                               "success, msg_index, delegator_address, validator_address, amount)"
+                               "success, msg_index, delegator_address, validator_address, amount) "
                                "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta, :amount)",
                                 use(uid), use(txUid), use(msg.type), use(log.log),
                                 use(log.success ? 1 : 0), use(log.messageIndex),
@@ -172,6 +173,7 @@ namespace ledger {
                 case api::CosmosLikeMsgType::MSGSUBMITPROPOSAL:
                     {
                         const auto& m = boost::get<cosmos::MsgSubmitProposal>(msg.content);
+                        std::string coins = soci::coinsToString(m.initialDeposit);
                         sql << "INSERT INTO cosmos_messages (uid,"
                                "transaction_uid, message_type, log,"
                                "success, msg_index, proposer, content_type,"
@@ -181,7 +183,7 @@ namespace ledger {
                                 use(uid), use(txUid), use(msg.type), use(log.log),
                                 use(log.success ? 1 : 0), use(log.messageIndex),
                                 use(m.proposer), use(m.content.type), use(m.content.title),
-                                use(m.content.description), use(m.initialDeposit[0]);
+                                use(m.content.description), use(coins);
                     }
                     break;
                 case api::CosmosLikeMsgType::MSGVOTE:
@@ -238,8 +240,6 @@ namespace ledger {
                 if (tx.block.nonEmpty()) {
                     BlockDatabaseHelper::putBlock(sql, tx.block.getValue());
                 }
-
-
 
                 return cosmosTxUid;
             }

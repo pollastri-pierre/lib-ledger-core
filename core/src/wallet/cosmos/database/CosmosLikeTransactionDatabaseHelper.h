@@ -61,6 +61,7 @@ namespace ledger {
             static std::string putTransaction(soci::session &sql,
                                               const std::string &accountUid,
                                               const cosmos::Transaction &tx);
+
         };
     }
 }

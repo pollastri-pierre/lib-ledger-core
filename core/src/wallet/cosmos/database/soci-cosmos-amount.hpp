@@ -74,48 +74,13 @@ namespace soci {
             cosmos_coin_to_json_tuple(in, tuple, allocator);
 
             StringBuffer buffer;
-            Writer<StringBuffer> writer;
+            Writer<StringBuffer> writer(buffer);
             d.Accept(writer);
             out = buffer.GetString();
         }
 
     };
 
-    template <typename T>
-    struct type_conversion<std::vector<ledger::core::cosmos::Coin, T>> {
-        typedef std::string base_type;
-        static void from_base(base_type const & in, indicator ind, std::vector<ledger::core::cosmos::Coin, T> & out) {
-            using namespace rapidjson;
-
-            Document d;
-            d.Parse(in.data());
-            const auto& list = d.GetArray();
-            auto index = 0;
-            out.assign(list.Size(), ledger::core::cosmos::Coin());
-            for (const auto& n : list) {
-                const auto& tuple = n.GetArray();
-                cosmos_coin_from_json_tuple(tuple, out[index]);
-            }
-        }
-
-        static void to_base(std::vector<ledger::core::cosmos::Coin, T> const & in, base_type & out, indicator & ind) {
-            using namespace rapidjson;
-            Document d;
-            auto& allocator = d.GetAllocator();
-
-            auto& list = d.SetArray();
-            for (auto const& c : in) {
-                Value tuple(kArrayType);
-                cosmos_coin_to_json_tuple(c, tuple, allocator);
-                list.PushBack(tuple.Move(), allocator);
-            }
-
-            StringBuffer buffer;
-            Writer<StringBuffer> writer;
-            d.Accept(writer);
-            out = buffer.GetString();
-        }
-
-    };
-
+    std::string coinsToString(const std::vector<ledger::core::cosmos::Coin> &coins);
+    void stringToCoins(const std::string &str, std::vector<ledger::core::cosmos::Coin> &out);
 }

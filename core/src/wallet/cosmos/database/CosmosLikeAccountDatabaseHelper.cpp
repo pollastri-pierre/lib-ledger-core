@@ -33,7 +33,7 @@
 #include <wallet/common/database/AccountDatabaseHelper.h>
 #include <utils/DateUtils.hpp>
 #include <database/soci-option.h>
-#include <wallet/cosmos/database/soci-cosmos-amount.h>
+#include <wallet/cosmos/database/soci-cosmos-amount.hpp>
 #include <database/soci-date.h>
 
 using namespace soci;
@@ -64,13 +64,15 @@ namespace ledger {
                 auto accountType = row.get<Option<std::string>>(2);
                 auto accountNumber = row.get<Option<std::string>>(3);
                 auto sequence = row.get<Option<std::string>>(4);
-                auto balances = row.get<Option<std::vector<cosmos::Coin>>>(5);
+                auto balances = row.get<Option<std::string>>(5);
                 auto lastUpdate = row.get<Option<std::chrono::system_clock::time_point>>(6);
 
                 entry.details.type = accountType.getValueOr("");
                 entry.details.sequence = accountType.getValueOr("0");
                 entry.details.accountNumber = accountNumber.getValueOr("0");
-                entry.details.balances = balances.getValueOr({});
+                if (balances.nonEmpty()) {
+                    soci::stringToCoins(balances.getValue(), entry.details.balances);
+                }
                 entry.details.address = entry.address;
                 entry.lastUpdate = lastUpdate.getValueOr({});
 
@@ -81,6 +83,7 @@ namespace ledger {
 
         void CosmosLikeAccountDatabaseHelper::updateAccount(soci::session &sql, const std::string &accountUid,
                                                             const CosmosLikeAccountDatabaseEntry &entry) {
+            std::string balances = soci::coinsToString(entry.details.balances);
             sql << "UPDATE "
                    "SET account_number = :account_number "
                    "SET sequence = :sequence "
@@ -90,7 +93,7 @@ namespace ledger {
                    "WHERE uid = :uid",
                    use(entry.details.accountNumber),
                    use(entry.details.sequence),
-                   use(Option<std::vector<cosmos::Coin>>(entry.details.balances)),
+                   use(balances),
                    use(entry.details.type),
                    use(entry.lastUpdate),
                    use(accountUid);
