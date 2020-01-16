@@ -229,6 +229,28 @@ namespace ledger {
             }
         }
 
+        static void insertTransaction(soci::session& sql, const std::string& uid, const cosmos::Transaction& tx) {
+            Option<std::string> blockUid;
+            Option<uint64_t> blockHeight;
+            if (tx.block.nonEmpty() && !tx.block.getValue().hash.empty()) {
+                blockUid = BlockDatabaseHelper::createBlockUid(tx.block.getValue());
+            } else if (tx.block.nonEmpty()) {
+                blockHeight = tx.block.getValue().height;
+            }
+
+            auto date = DateUtils::toJSON(tx.timestamp);
+            auto fee = soci::coinsToString(tx.fee.amount);
+            auto gas = tx.fee.gas.toString();
+            auto gasUsed = tx.gasUsed.flatMap<std::string>([] (const BigInt& g) {
+                return g.toString();
+            });
+            sql << "INSERT INTO cosmos_transactions("
+                   "transaction_uid, hash, block_uid, time, fee_amount, gas, block_height, gas_used, memo"
+                   ") VALUE(:uid, :hash, :buid, :time, :fee, :gas, :bheight, :gas_used, :memo)",
+                    use(uid), use(tx.hash), use(blockUid), use(date), use(fee), use(gas),
+                    use(blockHeight), use(gasUsed), use(tx.memo);
+        }
+
         std::string CosmosLikeTransactionDatabaseHelper::putTransaction(soci::session &sql,
                                                                         const std::string &accountUid,
                                                                         const cosmos::Transaction &tx) {
@@ -239,18 +261,29 @@ namespace ledger {
             auto cosmosTxUid = createCosmosTransactionUid(accountUid, tx.hash);
 
             if (transactionExists(sql, cosmosTxUid)) {
-                // UPDATE (we only update block information)
+                // UPDATE (we only update block information and gasUsed)
                 if (tx.block.nonEmpty() && tx.block.getValue().hash.size() > 0) {
-                    sql << "UPDATE cosmos_transactions SET block_uid = :uid WHERE hash = :tx_hash",
-                            use(blockUid), use(tx.hash);
+                    auto gasUsed = tx.gasUsed.flatMap<std::string>([] (const BigInt& g) {
+                        return g.toString();
+                    });
+                    sql << "UPDATE cosmos_transactions SET block_uid = :uid, gas_used = :gas_used "
+                           "WHERE hash = :tx_hash",
+                            use(blockUid), use(gasUsed), use(tx.hash);
                 }
                 return cosmosTxUid;
             } else {
                 // Insert
-                if (tx.block.nonEmpty()) {
+                if (tx.block.nonEmpty() && !tx.block.getValue().hash.empty()) {
                     BlockDatabaseHelper::putBlock(sql, tx.block.getValue());
                 }
-
+                // Insert transaction
+                insertTransaction(sql, cosmosTxUid, tx);
+                // Insert messages
+                auto index = 0;
+                for (const auto& message : tx.messages) {
+                    insertMessage(sql, cosmosTxUid, index, message, tx.)
+                    index += 1;
+                }
                 return cosmosTxUid;
             }
         }

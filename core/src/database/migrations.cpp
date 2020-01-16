@@ -720,6 +720,7 @@ namespace ledger {
                     "time VARCHAR(255) NOT NULL,"
                     "fee_amount VARCHAR(255) NOT NULL,"
                     "gas VARCHAR(255) NOT NULL,"
+                    "block_height BIGINT,"
                     "gas_used VARCHAR(255),"
                     "memo TEXT"
                     ")";

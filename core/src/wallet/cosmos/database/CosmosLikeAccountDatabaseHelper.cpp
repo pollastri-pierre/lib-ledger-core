@@ -43,9 +43,15 @@ namespace ledger {
         void CosmosLikeAccountDatabaseHelper::createAccount(soci::session &sql,
                                                             const std::string& walletUid, int32_t index,
                                                             const std::string &address) {
+
+            cosmos::Account acc;
+            auto balances { soci::coinsToString(acc.balances) };
+            std::string zero { "0" };
+            auto date { DateUtils::toJSON(acc.) };
             auto uid = AccountDatabaseHelper::createAccountUid(walletUid, index);
-            sql << "INSERT INTO cosmos_accounts VALUES(:uid, :wallet_uid, :idx, :address)", use(uid), use(
-                    walletUid), use(index), use(address);
+            sql << "INSERT INTO cosmos_accounts VALUES(:uid, :wallet_uid, :idx, :address, :acc_type,"
+                   ":acc_number, :sequence, :balances, :last_update)",
+            use(uid), use(walletUid), use(index), use(address), ;
         }
 
 
@@ -84,12 +90,12 @@ namespace ledger {
         void CosmosLikeAccountDatabaseHelper::updateAccount(soci::session &sql, const std::string &accountUid,
                                                             const CosmosLikeAccountDatabaseEntry &entry) {
             std::string balances = soci::coinsToString(entry.details.balances);
-            sql << "UPDATE "
-                   "SET account_number = :account_number "
-                   "SET sequence = :sequence "
-                   "SET balances = :balances "
-                   "SET account_type = :account_type "
-                   "SET last_update = :last_update "
+            sql << "UPDATE cosmos_accounts SET "
+                   "account_number = :account_number,"
+                   "sequence = :sequence,"
+                   "balances = :balances,"
+                   "account_type = :account_type,"
+                   "last_update = :last_update,"
                    "WHERE uid = :uid",
                    use(entry.details.accountNumber),
                    use(entry.details.sequence),
