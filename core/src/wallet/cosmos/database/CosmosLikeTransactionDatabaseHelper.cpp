@@ -214,7 +214,17 @@ namespace ledger {
                                 use(m.validatorDestinationAddress), use(m.amount);
                     }
                     break;
-                case api::CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD:break;
+                case api::CosmosLikeMsgType::MSGWITHDRAWDELEGATIONREWARD: {
+                    const auto &m = boost::get<cosmos::MsgWithdrawDelegationReward>(msg.content);
+                    sql << "INSERT INTO cosmos_messages (uid,"
+                           "transaction_uid, message_type, log,"
+                           "success, msg_index, delegator_address, validator_src_address)"
+                           "VALUES (:uid, :tuid, :mt, :log, :success, :mi, :fa, :ta)",
+                            use(uid), use(txUid), use(msg.type), use(log.log),
+                            use(log.success ? 1 : 0), use(log.messageIndex),
+                            use(m.delegatorAddress), use(m.validatorAddress);
+                }
+                    break;
                 case api::CosmosLikeMsgType::UNKNOWN:break;
             }
         }
