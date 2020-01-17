@@ -1,6 +1,6 @@
 /*
  *
- * RIppleLikeTransactionDatabaseHelper
+ * CosmosLikeTransactionDatabaseHelper
  *
  * Created by El Khalil Bellakrid on 06/01/2019.
  *
