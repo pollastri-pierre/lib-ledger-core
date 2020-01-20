@@ -48,9 +48,16 @@ namespace ledger {
                                                                        cosmos::Transaction &tx) {
 
             rowset<row> rows = (sql.prepare << "SELECT tx.transaction_uid, tx.hash, tx.time, "
-                    "tx.gas_price, tx.gas_limit, tx.memo, tx.gas_used, "
+                    "tx.memo, tx.gas_used, tx.fee_amount, tx.block_height"
+                    // Block
                     "block.height, block.hash, block.time, block.currency_name, "
-                    "msg.message_type, msg.from_address, msg.to_address, msg.amount_value, msg.fees "
+                    // Message
+                    "msg.message_type, msg.log, msg,success, msg.msg_index, msg.from_address,"
+                    "msg.to_address, msg.amount_value, msg.delegator_address, msg.validator_address,"
+                    "msg.validator_src_address, msg.validator_src_address, msg.content_type, msg.content_title,"
+                    "msg.content_description, msg.proposer, msg.voter, msg.proposal_id, msg.vote_option,"
+                    "msg.depositor "
+                    // End of Message
                     "FROM cosmos_transactions AS tx "
                     "LEFT JOIN blocks AS block ON tx.block_uid = block.uid "
                     "LEFT JOIN cosmos_messages AS msg ON msg.transaction_uid = tx.transaction_uid "
@@ -68,23 +75,25 @@ namespace ledger {
         bool CosmosLikeTransactionDatabaseHelper::inflateTransaction(soci::session &sql,
                                                                      const soci::row &row,
                                                                      cosmos::Transaction &tx) {
-//            tx.uid = row.get<std::string>(0);
-//            tx.hash = row.get<std::string>(1);
-//            tx.timestamp = row.get<std::chrono::system_clock::time_point>(3);
-//            tx.gasPrice = BigInt(row.get<std::string>(4));
-//            tx.gasLimit = BigInt(row.get<std::string>(5));
-//            tx.memo = row.get<std::string>(6);
-//            tx.gasUsed = BigInt(row.get<std::string>(7));
-//             //TODO: gas limit and price
-//            if (row.get_indicator(7) != i_null) {
-//                CosmosLikeBlockchainExplorer::Block block;
-//                block.height = get_number<uint64_t>(row, 8);
-//                block.hash = row.get<std::string>(9);
-//                block.time = row.get<std::chrono::system_clock::time_point>(10);
-//                block.currencyName = row.get<std::string>(11);
-//                tx.block = block;
-//            }
-//
+            tx.uid = row.get<std::string>(0);
+            tx.hash = row.get<std::string>(1);
+            tx.timestamp = row.get<std::chrono::system_clock::time_point>(3);
+            tx.memo = row.get<Option<std::string>>(6).getValueOr("");
+            tx.gasUsed = row.get<Option<std::string>>(8).map<BigInt>([] (const std::string& v) {
+                return BigInt::fromString(v);
+            });
+            tx.fee = row.get<cosmos::Fee>(9);
+
+             //TODO: gas limit and price
+            if (row.get_indicator(7) != i_null) {
+                CosmosLikeBlockchainExplorer::Block block;
+                block.height = get_number<uint64_t>(row, 8);
+                block.hash = row.get<std::string>(9);
+                block.time = row.get<std::chrono::system_clock::time_point>(10);
+                block.currencyName = row.get<std::string>(11);
+                tx.block = block;
+            }
+
 //            CosmosLikeBlockchainExplorerMessage msg;
 //            msg.type = row.get<std::string>(12);
 //            msg.sender = row.get<std::string>(13);
@@ -281,7 +290,8 @@ namespace ledger {
                 // Insert messages
                 auto index = 0;
                 for (const auto& message : tx.messages) {
-                    insertMessage(sql, cosmosTxUid, index, message, tx.)
+                    const auto& log = tx.logs[index];
+                    insertMessage(sql, cosmosTxUid, index, message, log);
                     index += 1;
                 }
                 return cosmosTxUid;

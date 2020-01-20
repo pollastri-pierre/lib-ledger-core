@@ -47,11 +47,12 @@ namespace ledger {
             cosmos::Account acc;
             auto balances { soci::coinsToString(acc.balances) };
             std::string zero { "0" };
-            auto date { DateUtils::toJSON(acc.) };
+            auto date { DateUtils::toJSON(acc.lastUpdate) };
             auto uid = AccountDatabaseHelper::createAccountUid(walletUid, index);
             sql << "INSERT INTO cosmos_accounts VALUES(:uid, :wallet_uid, :idx, :address, :acc_type,"
                    ":acc_number, :sequence, :balances, :last_update)",
-            use(uid), use(walletUid), use(index), use(address), ;
+            use(uid), use(walletUid), use(index), use(address), use(acc.type), use(acc.accountNumber),
+            use(acc.sequence), use(balances), use(date);
         }
 
 

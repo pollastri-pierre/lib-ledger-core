@@ -81,6 +81,48 @@ namespace soci {
 
     };
 
+    template <>
+    struct type_conversion<ledger::core::cosmos::Fee> {
+        typedef std::string base_type;
+        static void from_base(base_type const& in, indicator ind, ledger::core::cosmos::Fee & out) {
+            using namespace rapidjson;
+            using namespace ledger::core;
+
+            Document d;
+            d.Parse(in.data());
+            const auto& obj = d.GetObject();
+            out.gas = BigInt::fromString(obj["gas"].GetString());
+            const auto& array = obj["amount"].GetArray();
+            out.amount.resize(array.Size());
+            auto index = 0;
+            for (const auto& item : array) {
+                const auto& tuple = item.GetArray();
+                cosmos_coin_from_json_tuple(tuple, out.amount[index]);
+                index += 1;
+            }
+        }
+
+        static void to_base(ledger::core::cosmos::Fee const & in, base_type & out, indicator & ind) {
+            using namespace rapidjson;
+            Document d;
+            auto& allocator = d.GetAllocator();
+
+            auto& obj = d.SetObject();
+            auto gas = in.gas.toString();
+            obj["gas"].SetString(gas.data(), gas.size());
+            auto& array = obj["amount"].SetObject();
+            for (const auto& item : in.amount) {
+                Value tuple(kArrayType);
+                cosmos_coin_to_json_tuple(item, tuple, allocator);
+                array.PushBack(tuple, allocator);
+            }
+            StringBuffer buffer;
+            Writer<StringBuffer> writer(buffer);
+            d.Accept(writer);
+            out = buffer.GetString();
+        }
+    };
+
     std::string coinsToString(const std::vector<ledger::core::cosmos::Coin> &coins);
     void stringToCoins(const std::string &str, std::vector<ledger::core::cosmos::Coin> &out);
 }

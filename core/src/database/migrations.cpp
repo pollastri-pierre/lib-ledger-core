@@ -749,7 +749,7 @@ namespace ledger {
                     "content_description TEXT,"
                     "proposer VARCHAR(255),"
                     // MsgVote
-                    "voter VARCHAR(40),"
+                    "voter VARCHAR(255),"
                     "proposal_id VARCHAR(255),"
                     "vote_option VARCHAR(255),"
                     // MsgDeposit
