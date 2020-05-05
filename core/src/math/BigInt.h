@@ -224,7 +224,15 @@ namespace ledger {
             BigInt& assignI64(int64_t value);
 
             template <typename T>
-            BigInt& assignScalar(T value) {
+            typename std::enable_if<std::is_unsigned<T>::value, BigInt&>::type assignScalar(T value) {
+                auto bytes = endianness::scalar_type_to_array<T>(value, endianness::Endianness::BIG);
+                bdConvFromOctets(_bigd, reinterpret_cast<const unsigned char *>(bytes), sizeof(value));
+                std::free(bytes);
+                return *this;
+            }
+
+            template <typename T>
+            typename std::enable_if<!std::is_unsigned<T>::value, BigInt&>::type assignScalar(T value) {
                 auto bytes = endianness::scalar_type_to_array<T>(std::abs(value), endianness::Endianness::BIG);
                 bdConvFromOctets(_bigd, reinterpret_cast<const unsigned char *>(bytes), sizeof(value));
                 std::free(bytes);

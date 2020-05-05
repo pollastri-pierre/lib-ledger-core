@@ -177,3 +177,9 @@ TEST(BigInt, FromFloatString) {
     auto tt = subject.toByteArray();
     EXPECT_TRUE(witness.compare(subject) == 0);
 }
+
+TEST(BigInt, AssignFromUnsignedScalar) {
+    uint64_t value = 0xFFFFFFFFFFFFFF01UL;
+    BigInt bigInt = BigInt::fromScalar(value);
+    EXPECT_EQ(value, bigInt.toUint64());
+}
