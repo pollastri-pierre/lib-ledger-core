@@ -110,6 +110,7 @@ namespace ledger {
 
         int BitcoinLikeAccount::putTransaction(soci::session &sql,
                                                const BitcoinLikeBlockchainExplorerTransaction &transaction) {
+            fmt::print("Try to insert {}\n", transaction.hash);
             if (transaction.block.nonEmpty())
                 putBlock(sql, transaction.block.getValue());
             auto nodeIndex = std::const_pointer_cast<const BitcoinLikeKeychain>(_keychain)->getFullDerivationScheme().getPositionForLevel(DerivationSchemeLevel::NODE);

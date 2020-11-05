@@ -29,11 +29,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/utils/hex.h>
-#include <ledger/core/api/RippleLikeExtendedPublicKey.hpp>
-#include <ledger/core/ripple/RippleLikeAddress.h>
-#include <ledger/core/utils/optional.hpp>
-#include <ledger/core/api/Networks.hpp>
+#include <utils/hex.h>
+#include <api/RippleLikeExtendedPublicKey.hpp>
+#include <ripple/RippleLikeAddress.h>
+#include <utils/optional.hpp>
+#include <api/Networks.hpp>
 #include <wallet/currencies.hpp>
 #include <api/Address.hpp>
 #include <ripple/RippleLikeExtendedPublicKey.h>

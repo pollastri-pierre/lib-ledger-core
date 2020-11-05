@@ -30,12 +30,12 @@
 
 #include <gtest/gtest.h>
 
-#include <ledger/core/bytes/RLP/RLPListEncoder.h>
-#include <ledger/core/bytes/RLP/RLPStringEncoder.h>
-#include <ledger/core/bytes/RLP/RLPDecoder.h>
+#include <bytes/RLP/RLPListEncoder.h>
+#include <bytes/RLP/RLPStringEncoder.h>
+#include <bytes/RLP/RLPDecoder.h>
 
-#include <ledger/core/bytes/BytesWriter.h>
-#include <ledger/core/utils/hex.h>
+#include <bytes/BytesWriter.h>
+#include <utils/hex.h>
 
 #include <iostream>
 using namespace std;

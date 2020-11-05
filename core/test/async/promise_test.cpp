@@ -30,7 +30,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/async/Promise.hpp>
+#include <async/Promise.hpp>
 #include <NativeThreadDispatcher.hpp>
 
 using namespace ledger::core;

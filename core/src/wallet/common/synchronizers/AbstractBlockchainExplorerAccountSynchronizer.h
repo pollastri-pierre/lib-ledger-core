@@ -342,6 +342,7 @@ namespace ledger {
                 }).recoverWith(ImmediateExecutionContext::INSTANCE, [=] (const Exception &exception) -> Future<Unit> {
                     buddy->logger->info("Recovering from failing synchronization : {}", exception.getMessage());
                     //A block reorganization happened
+                    fmt::print("RECOVERING savedState.isEmpty = {}, error_code = {}\n", buddy->savedState.nonEmpty(), api::to_string(exception.getErrorCode()));
                     if (exception.getErrorCode() == api::ErrorCode::BLOCK_NOT_FOUND &&
                         buddy->savedState.nonEmpty()) {
                         buddy->logger->info("Recovering from reorganization");
@@ -384,20 +385,26 @@ namespace ledger {
                                     soci::transaction tr(sql);
                                     try {
 
-                                        soci::rowset<std::string> rows_block =  (sql.prepare << "SELECT uid FROM blocks where height >= :failedBlockHeight",
+                                        fmt::print("1\n");
+                                        soci::rowset<std::string> rows_block =  (sql.prepare << "SELECT uid FROM blocks WHERE height >= :failedBlockHeight",
                                                                                     soci::use(failedBlockHeight));
 
                                         std::vector<std::string> blockToDelete(rows_block.begin(), rows_block.end());
 
+                                        fmt::print("2\n");
                                         // Fetch all operations which are deleted during reorganization
                                         auto deletedOperationUIDs = OperationDatabaseHelper::fetchFromBlocks(sql, blockToDelete);
 
+                                        fmt::print("3\n");
                                         // Remove failed blocks and associated operations/transactions
                                         AccountDatabaseHelper::removeBlockOperation(sql, buddy->account->getAccountUid(), blockToDelete);
 
+                                        tr.commit();
+                                        fmt::print("3\n");
                                         //Get last block not part from reorg
                                         auto lastBlock = BlockDatabaseHelper::getLastBlock(sql,
                                                                                            buddy->wallet->getCurrency().name);
+
 
                                         //Resync from the "beginning" if no last block in DB
                                         int64_t lastBlockHeight = 0;
@@ -408,6 +415,7 @@ namespace ledger {
                                         }
                                         // update reorganization block height until found the valid one
                                         buddy->context.reorgBlockHeight = lastBlockHeight;
+                                        buddy->logger->info("New last block is {} at height {}", lastBlockHash, lastBlockHeight);
 
                                         //Update savedState's batches
                                         for (auto &batch : buddy->savedState.getValue().batches) {
@@ -416,7 +424,6 @@ namespace ledger {
                                                 batch.blockHash = lastBlockHash;
                                             }
                                         }
-                                        tr.commit();
 
                                         // We can emit safely deleted operation UIDs
                                         std::for_each(
@@ -425,7 +432,8 @@ namespace ledger {
                                             [buddy](auto const &uid) {
                                                 buddy->account->emitDeletedOperationEvent(uid);
                                             });
-                                    } catch(...) {
+                                    } catch(const std::exception& ex) {
+                                        fmt::print("ABORT BIG EXCEPTION {}\n", ex.what());
                                         tr.rollback();
                                     }
                                 }

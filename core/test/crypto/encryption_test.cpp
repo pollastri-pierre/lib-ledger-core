@@ -30,14 +30,14 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/crypto/AES256.hpp>
-#include <ledger/core/crypto/PBKDF2.hpp>
+#include <crypto/AES256.hpp>
+#include <crypto/PBKDF2.hpp>
 #include <vector>
-#include <ledger/core/crypto/AESCipher.hpp>
+#include <crypto/AESCipher.hpp>
 #include <OpenSSLRandomNumberGenerator.hpp>
 #include <sstream>
-#include <ledger/core/bytes/BytesReader.h>
-#include <ledger/core/bytes/BytesWriter.h>
+#include <bytes/BytesReader.h>
+#include <bytes/BytesWriter.h>
 
 using namespace ledger::core;
 

@@ -33,11 +33,11 @@
 #define LEDGER_CORE_UVTHREADDISPATCHER_HPP
 
 #include <uv.h>
-#include <ledger/core/api/ThreadDispatcher.hpp>
-#include <ledger/core/api/ExecutionContext.hpp>
-#include <ledger/core/async/Future.hpp>
-#include <ledger/core/api/Runnable.hpp>
-#include <ledger/core/api/Lock.hpp>
+#include <api/ThreadDispatcher.hpp>
+#include <api/ExecutionContext.hpp>
+#include <async/Future.hpp>
+#include <api/Runnable.hpp>
+#include <api/Lock.hpp>
 #include <condition_variable>
 
 namespace uv {

@@ -30,8 +30,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/utils/Either.hpp>
-#include <ledger/core/utils/Exception.hpp>
+#include <utils/Either.hpp>
+#include <utils/Exception.hpp>
 #include <string>
 
 using  namespace ledger::core;

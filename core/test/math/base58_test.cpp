@@ -30,9 +30,9 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/math/Base58.hpp>
-#include <ledger/core/utils/hex.h>
-#include <ledger/core/collections/DynamicObject.hpp>
+#include <math/Base58.hpp>
+#include <utils/hex.h>
+#include <collections/DynamicObject.hpp>
 using namespace ledger::core;
 
 const std::string BitcoinPublicKeyHashPrefix = "00";

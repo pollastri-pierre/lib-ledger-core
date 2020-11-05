@@ -30,15 +30,15 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/crypto/SHA256.hpp>
-#include <ledger/core/crypto/SHA512.hpp>
-#include <ledger/core/crypto/RIPEMD160.hpp>
-#include <ledger/core/utils/hex.h>
-#include <ledger/core/crypto/HMAC.hpp>
-#include <ledger/core/crypto/HASH160.hpp>
-#include <ledger/core/crypto/BLAKE.h>
-#include <ledger/core/crypto/HashAlgorithm.h>
-#include <ledger/core/crypto/Keccak.h>
+#include <crypto/SHA256.hpp>
+#include <crypto/SHA512.hpp>
+#include <crypto/RIPEMD160.hpp>
+#include <utils/hex.h>
+#include <crypto/HMAC.hpp>
+#include <crypto/HASH160.hpp>
+#include <crypto/BLAKE.h>
+#include <crypto/HashAlgorithm.h>
+#include <crypto/Keccak.h>
 
 using namespace ledger::core;
 

@@ -29,20 +29,20 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/utils/hex.h>
-#include <ledger/core/api/TezosLikeExtendedPublicKey.hpp>
-#include <ledger/core/tezos/TezosLikeAddress.h>
-#include <ledger/core/utils/optional.hpp>
-#include <ledger/core/collections/DynamicObject.hpp>
-#include <ledger/core/api/DynamicObject.hpp>
-#include <ledger/core/api/Networks.hpp>
+#include <utils/hex.h>
+#include <api/TezosLikeExtendedPublicKey.hpp>
+#include <tezos/TezosLikeAddress.h>
+#include <utils/optional.hpp>
+#include <collections/DynamicObject.hpp>
+#include <api/DynamicObject.hpp>
+#include <api/Networks.hpp>
 #include <wallet/currencies.hpp>
 #include <api/Address.hpp>
 #include <tezos/TezosLikeExtendedPublicKey.h>
 #include <utils/hex.h>
 #include <api/Configuration.hpp>
 #include <crypto/HASH160.hpp>
-#include <ledger/core/crypto/BLAKE.h>
+#include <crypto/BLAKE.h>
 
 using namespace ledger::core::api;
 using namespace ledger::core;

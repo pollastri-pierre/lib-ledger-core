@@ -37,8 +37,8 @@
 #include <mongoose.h>
 #include <MongooseHttpClient.hpp>
 #include <MongooseSimpleRestServer.hpp>
-#include <ledger/core/net/HttpClient.hpp>
-#include <ledger/core/net/HttpJsonHandler.hpp>
+#include <net/HttpClient.hpp>
+#include <net/HttpJsonHandler.hpp>
 #include <boost/lexical_cast.hpp>
 
 static std::string BIG_TEXT =

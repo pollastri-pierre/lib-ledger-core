@@ -34,8 +34,8 @@
 #include <NativeThreadDispatcher.hpp>
 #include <NativePathResolver.hpp>
 #include <CoutLogPrinter.hpp>
-#include <ledger/core/debug/logger.hpp>
-#include <ledger/core/utils/optional.hpp>
+#include <debug/logger.hpp>
+#include <utils/optional.hpp>
 #include <spdlog/details/os.h>
 #include <gtest/gtest.h>
 #include <iostream>

@@ -31,7 +31,7 @@
 #ifndef LEDGER_CORE_OPENSSLRANDOMNUMBERGENERATOR_HPP
 #define LEDGER_CORE_OPENSSLRANDOMNUMBERGENERATOR_HPP
 
-#include <ledger/core/api/RandomNumberGenerator.hpp>
+#include <api/RandomNumberGenerator.hpp>
 
 class OpenSSLRandomNumberGenerator : public ledger::core::api::RandomNumberGenerator {
 public:

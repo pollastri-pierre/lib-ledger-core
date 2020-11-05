@@ -26,7 +26,13 @@ add_executable(ledger-core-integration-tests
         )
 
 target_link_libraries(ledger-core-integration-tests gtest gtest_main)
-target_link_libraries(ledger-core-integration-tests crypto)
+if (SYS_OPENSSL)
+    find_package(OpenSSL REQUIRED)
+    target_link_libraries(ledger-core-interface INTERFACE OpenSSL::Crypto)
+else()
+    target_link_libraries(ledger-core-interface INTERFACE crypto)
+    copy_install_imported_targets(ledger-core-integration-tests crypto)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # We need this otherwise link fails (for Linux),
     # this is needed since we build static library for tests,
@@ -44,7 +50,7 @@ target_include_directories(ledger-core-integration-tests PUBLIC ../../../core/sr
 target_include_directories(ledger-core-integration-tests PUBLIC ../../../qt-host)
 
 include(CopyAndInstallImportedTargets)
-copy_install_imported_targets(ledger-core-integration-tests crypto)
+
 
 #add_test (NAME ledger-core-integration-tests COMMAND ledger-core-integration-tests)
 

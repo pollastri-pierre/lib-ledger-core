@@ -53,12 +53,12 @@ namespace ledger {
     namespace core {
 
         std::vector<std::string> OperationDatabaseHelper::fetchFromBlocks(soci::session &sql, std::vector<std::string> const &blockUIDs) {
+            fmt::print("A\n");
             rowset<std::string> rows = (
                 sql.prepare << "SELECT uid "
                                "FROM operations AS op "
                                "WHERE block_uid IN (:uids)",
                 use(blockUIDs));
-
             return std::vector<std::string>(rows.begin(), rows.end());
         }
 

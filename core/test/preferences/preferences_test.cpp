@@ -33,9 +33,9 @@
 #include <EventLooper.hpp>
 #include <EventThread.hpp>
 #include <NativeThreadDispatcher.hpp>
-#include <ledger/core/preferences/Preferences.hpp>
-#include <ledger/core/preferences/PreferencesBackend.hpp>
-#include <ledger/core/utils/Option.hpp>
+#include <preferences/Preferences.hpp>
+#include <preferences/PreferencesBackend.hpp>
+#include <utils/Option.hpp>
 #include <NativePathResolver.hpp>
 #include <fstream>
 #include <OpenSSLRandomNumberGenerator.hpp>

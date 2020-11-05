@@ -30,7 +30,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/utils/endian.h>
+#include <utils/endian.h>
 
 using namespace ledger::core;
 

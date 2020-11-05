@@ -32,11 +32,11 @@
 #include <gtest/gtest.h>
 #include <NativePathResolver.hpp>
 #include <NativeThreadDispatcher.hpp>
-#include <ledger/core/api/WalletPoolBuilder.hpp>
-#include <ledger/core/api/WalletPool.hpp>
+#include <api/WalletPoolBuilder.hpp>
+#include <api/WalletPool.hpp>
 #include <CoutLogPrinter.hpp>
 #include <MongooseHttpClient.hpp>
-#include <ledger/core/api/Logger.hpp>
+#include <api/Logger.hpp>
 
 using namespace ledger::core;
 

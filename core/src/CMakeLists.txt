@@ -123,7 +123,7 @@ else()
 endif(MINGW OR MSVC)
 
 if (SYS_OPENSSL)
-    find_package(OpenSSL)
+    find_package(OpenSSL REQUIRED)
     target_link_libraries(ledger-core-interface INTERFACE OpenSSL::Crypto)
 else()
     target_link_libraries(ledger-core-interface INTERFACE crypto)

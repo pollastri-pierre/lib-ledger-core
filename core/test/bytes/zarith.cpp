@@ -30,9 +30,9 @@
 
 #include <gtest/gtest.h>
 #include <vector>
-#include <ledger/core/bytes/BytesWriter.h>
-#include <ledger/core/bytes/zarith/zarith.h>
-#include <ledger/core/utils/hex.h>
+#include <bytes/BytesWriter.h>
+#include <bytes/zarith/zarith.h>
+#include <utils/hex.h>
 #include <iostream>
 using namespace std;
 

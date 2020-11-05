@@ -56,7 +56,7 @@ namespace ledger {
             if (_dbResolvedPath.empty()) {
                 throw make_exception(api::ErrorCode::DATABASE_EXCEPTION, "Database should be initiated before setting password.");
             }
-            auto parameters = fmt::format("dbname=\"{}\" ", _dbResolvedPath) + fmt::format("key=\"{}\" ", password);
+            auto parameters = fmt::format("dbname=\"{}\" ", _dbResolvedPath);
             session.close();
             session.open(*soci::factory_sqlite3(), parameters);
         }

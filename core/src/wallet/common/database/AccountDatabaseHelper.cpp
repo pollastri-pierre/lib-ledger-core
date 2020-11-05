@@ -35,6 +35,7 @@
 #include <database/soci-date.h>
 #include <database/soci-number.h>
 #include <utils/DateUtils.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 using namespace soci;
 
@@ -126,15 +127,13 @@ namespace ledger {
         {
             if (!blocks.empty())
             {
-                sql << "DELETE FROM blocks where uid IN (:uids)",
-                    soci::use(blocks);
-
+                fmt::print("TX DEL B [{}]   {}\n", accountUid, boost::algorithm::join(blocks, " ,"));
                 soci::rowset<std::string> rows_tx = (sql.prepare << "SELECT transaction_uid FROM bitcoin_operations AS bop "
                                                                     "JOIN operations AS op ON bop.uid = op.uid "
-                                                                    "WHERE op.account_uid = :uid AND op.block_uid IN (:b_uids)",
-                                                     soci::use(accountUid), soci::use(blocks));
-
+                                                                    "WHERE op.block_uid IN (:b_uids)", soci::use(blocks));
+                fmt::print("TX DEL C prime\n");
                 std::vector<std::string> txToDelete(rows_tx.begin(), rows_tx.end());
+                fmt::print("TX TO DELETE {}\n", txToDelete.size());
                 if (!txToDelete.empty())
                 {
                     sql << "DELETE FROM bitcoin_inputs WHERE uid IN ("
@@ -142,12 +141,18 @@ namespace ledger {
                            "WHERE transaction_uid IN(:uids)"
                            ")",
                         soci::use(txToDelete);
+                    fmt::print("TX DEL C\n");
                     sql << "DELETE FROM operations WHERE account_uid = :uid AND block_uid is IN (:b_uids)",
                         soci::use(accountUid), soci::use(blocks);
+                    fmt::print("TX DEL D\n");
                     sql << "DELETE FROM bitcoin_transactions "
                            "WHERE transaction_uid IN (:uids)",
                         soci::use(txToDelete);
+                    fmt::print("TX DEL E\n");
                 }
+                fmt::print("TX DEL A\n");
+                sql << "DELETE FROM blocks where uid IN (:uids)",
+                        soci::use(blocks);
             }
         }
 

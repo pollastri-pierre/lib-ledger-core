@@ -30,11 +30,11 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/api/DynamicArray.hpp>
-#include <ledger/core/api/DynamicObject.hpp>
-#include <ledger/core/collections/DynamicObject.hpp>
-#include <ledger/core/collections/DynamicValue.hpp>
-#include <ledger/core/utils/optional.hpp>
+#include <api/DynamicArray.hpp>
+#include <api/DynamicObject.hpp>
+#include <collections/DynamicObject.hpp>
+#include <collections/DynamicValue.hpp>
+#include <utils/optional.hpp>
 
 using namespace ledger::core::api;
 

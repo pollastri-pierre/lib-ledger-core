@@ -30,7 +30,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/utils/Lazy.hpp>
+#include <utils/Lazy.hpp>
 
 
 struct MySuperClass {

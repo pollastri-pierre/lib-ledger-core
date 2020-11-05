@@ -29,7 +29,7 @@
  *
  */
 #include <gtest/gtest.h>
-#include <ledger/core/utils/hex.h>
+#include <utils/hex.h>
 
 using namespace ledger::core;
 

@@ -2,7 +2,7 @@
 #include <gmock/gmock.h>
 #include <api/KeychainEngines.hpp>
 #include <api/BitcoinLikeScript.hpp>
-#include <ledger/core/api/Networks.hpp>
+#include <api/Networks.hpp>
 #include <wallet/currencies.hpp>
 #include <wallet/common/Amount.h>
 #include <wallet/bitcoin/transaction_builders/BitcoinLikeStrategyUtxoPicker.h>

@@ -77,15 +77,17 @@ namespace ledger {
                         .template json<TransactionsBulk, Exception>(LedgerApiParser<TransactionsBulk, TransactionsBulkParser>())
                         .template mapPtr<TransactionsBulk>(getExplorerContext(), [fromBlockHash] (const Either<Exception, std::shared_ptr<TransactionsBulk>>& result) {
                             if (result.isLeft()) {
-                                // Only case where we should emit block not found error
-                                if (!fromBlockHash.isEmpty() && result.getLeft().getErrorCode() == api::ErrorCode::HTTP_ERROR) {
-                                    throw make_exception(api::ErrorCode::BLOCK_NOT_FOUND, "Unable to find block with hash {}", fromBlockHash.getValue());
-                                } else {
-                                    throw result.getLeft();
-                                }
+                                throw result.getLeft();
                             } else {
                                 return result.getRight();
                             }
+                        }).recover(getExplorerContext(), [=] (const Exception& exception) -> std::shared_ptr<TransactionsBulk> {
+                            // Only case where we should emit block not found error
+                            if (fromBlockHash.nonEmpty() && exception.getErrorCode() == api::ErrorCode::HTTP_ERROR) {
+                                throw make_exception(api::ErrorCode::BLOCK_NOT_FOUND,
+                                                     "Unable to find block with hash {}", fromBlockHash.getValue());
+                            }
+                            throw exception;
                         });
             };
 

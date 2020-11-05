@@ -57,7 +57,6 @@ namespace ledger {
                                                                const std::shared_ptr<Preferences> &preferences)
                 : BitcoinLikeKeychain(configuration, params, account, preferences) {
             _xpub = xpub;
-
             {
                 auto localPath = getDerivationScheme().getSchemeTo(DerivationSchemeLevel::NODE)
                         .setAccountIndex(getAccountIndex())
@@ -72,7 +71,6 @@ namespace ledger {
                         .setNode(CHANGE).getPath();
                 _internalNodeXpub = std::static_pointer_cast<BitcoinLikeExtendedPublicKey>(_xpub)->derive(localPath);
             }
-
             // Try to restore the state from preferences
             auto state = preferences->getData("state", {});
             if (!state.empty()) {

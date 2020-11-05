@@ -31,11 +31,11 @@
 #ifndef LEDGER_CORE_CALLBACKS_HPP
 #define LEDGER_CORE_CALLBACKS_HPP
 
-#include <ledger/core/traits/callback_traits.hpp>
+#include <traits/callback_traits.hpp>
 #include <functional>
-#include <ledger/core/async/Promise.hpp>
-#include <ledger/core/async/Future.hpp>
-#include <ledger/core/utils/Exception.hpp>
+#include <async/Promise.hpp>
+#include <async/Future.hpp>
+#include <utils/Exception.hpp>
 
 using namespace ledger::core;
 

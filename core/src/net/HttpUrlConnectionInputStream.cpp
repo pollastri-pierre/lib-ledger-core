@@ -85,6 +85,7 @@ namespace ledger {
         void HttpUrlConnectionInputStream::refill() {
             if (_index >= _buffer.size()) {
                 auto result = _connection->readBody();
+                fmt::print("{}\n", std::string(result.data.value().begin(), result.data.value().end()));
                 if (result.error) {
                     throw Exception(result.error.value().code,
                                     result.error.value().message,

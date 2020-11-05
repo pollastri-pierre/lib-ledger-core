@@ -29,7 +29,7 @@
  *
  */
 #include <gtest/gtest.h>
-#include <ledger/core/utils/Option.hpp>
+#include <utils/Option.hpp>
 #include <string>
 
 using namespace ledger::core;

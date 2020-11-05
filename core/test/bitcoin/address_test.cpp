@@ -30,14 +30,14 @@
  */
 
 #include <gtest/gtest.h>
-#include <ledger/core/api/BitcoinLikeAddress.hpp>
-#include <ledger/core/bitcoin/BitcoinLikeAddress.hpp>
-#include <ledger/core/api/BitcoinLikeNetworkParameters.hpp>
-#include <ledger/core/utils/hex.h>
-#include <ledger/core/api/BitcoinLikeExtendedPublicKey.hpp>
-#include <ledger/core/utils/optional.hpp>
-#include <ledger/core/api/Networks.hpp>
-#include <ledger/core/collections/DynamicObject.hpp>
+#include <api/BitcoinLikeAddress.hpp>
+#include <bitcoin/BitcoinLikeAddress.hpp>
+#include <api/BitcoinLikeNetworkParameters.hpp>
+#include <utils/hex.h>
+#include <api/BitcoinLikeExtendedPublicKey.hpp>
+#include <utils/optional.hpp>
+#include <api/Networks.hpp>
+#include <collections/DynamicObject.hpp>
 #include <wallet/currencies.hpp>
 #include <api/Address.hpp>
 #include <bitcoin/BitcoinLikeExtendedPublicKey.hpp>

@@ -29,7 +29,7 @@
  *
  */
 #include <gtest/gtest.h>
-#include <ledger/core/utils/DerivationPath.hpp>
+#include <utils/DerivationPath.hpp>
 
 using namespace ledger::core;
 

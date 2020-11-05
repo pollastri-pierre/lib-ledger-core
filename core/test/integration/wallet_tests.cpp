@@ -30,7 +30,7 @@
  */
 
 #include "BaseFixture.h"
-#include <ledger/core/api/ErrorCode.hpp>
+#include <api/ErrorCode.hpp>
 class WalletTests : public BaseFixture {
 
 };

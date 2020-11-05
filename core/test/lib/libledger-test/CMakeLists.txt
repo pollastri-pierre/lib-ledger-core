@@ -1,6 +1,7 @@
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+find_package(OpenSSL REQUIRED)
 
 add_library(mangoose STATIC mongoose.c mongoose.h)
 
@@ -17,19 +18,25 @@ add_library(ledger-test STATIC
             HttpClientOnFakeExplorer.hpp HttpClientOnFakeExplorer.cpp
             UvThreadDispatcher.hpp UvThreadDispatcher.cpp
             CppHttpLibClient.hpp CppHttpLibClient.cpp)
+
 if (SYS_OPENSSL)
     include_directories(${CMAKE_BINARY_DIR}/include ${OPENSSL_INCLUDE_DIR})
 else()
     include_directories(${CMAKE_BINARY_DIR}/include ../../../lib/openssl/include)
 endif()
+
 if (MSVC)
     target_include_directories(ledger-test PUBLIC ${CMAKE_BINARY_DIR}/include/ledger/core)
 endif ()
+target_include_directories(ledger-test PUBLIC ${CMAKE_BINARY_DIR}/include/ledger/core)
+target_include_directories(ledger-test PUBLIC ../../../core/src)
+target_include_directories(ledger-test PUBLIC ${OPENSSL_INCLUDE_DIR})
 
-target_link_libraries(mangoose PUBLIC ssl)
+target_link_libraries(mangoose PUBLIC OpenSSL::SSL)
 target_link_libraries(ledger-test PUBLIC uv)
 
-target_link_libraries(ledger-test PUBLIC crypto)
+target_link_libraries(ledger-test PUBLIC OpenSSL::Crypto)
+target_link_libraries(ledger-test PUBLIC OpenSSL::SSL)
 target_link_libraries(ledger-test PUBLIC ledger-core-static)
 target_link_libraries(ledger-test PUBLIC mangoose)
 target_include_directories(ledger-test PUBLIC ../../../lib/fmt-3.0.0)
