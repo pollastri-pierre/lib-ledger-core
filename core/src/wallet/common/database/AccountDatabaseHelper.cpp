@@ -127,34 +127,18 @@ namespace ledger {
         {
             if (!blocks.empty())
             {
-                fmt::print("TX DEL B [{}]   {}\n", accountUid, boost::algorithm::join(blocks, " ,"));
-                soci::rowset<std::string> rows_tx = (sql.prepare << "SELECT transaction_uid FROM bitcoin_operations AS bop "
-                                                                    "JOIN operations AS op ON bop.uid = op.uid "
-                                                                    "WHERE op.block_uid IN (:b_uids)", soci::use(blocks));
-                fmt::print("TX DEL C prime\n");
+                auto blockuid_query_clause = "(\'" + boost::algorithm::join(blocks, "\',\'") + "\')";
+                soci::rowset<std::string> rows_tx = (sql.prepare << ("SELECT transaction_uid FROM bitcoin_operations AS bop JOIN operations AS op ON bop.uid = op.uid WHERE op.block_uid IN " + blockuid_query_clause));
                 std::vector<std::string> txToDelete(rows_tx.begin(), rows_tx.end());
-                fmt::print("TX TO DELETE {}\n", txToDelete.size());
                 if (!txToDelete.empty())
                 {
-                    sql << "DELETE FROM bitcoin_inputs WHERE uid IN ("
-                           "SELECT input_uid FROM bitcoin_transaction_inputs "
-                           "WHERE transaction_uid IN(:uids)"
-                           ")",
-                        soci::use(txToDelete);
-                    fmt::print("TX DEL C\n");
-                    sql << "DELETE FROM operations WHERE account_uid = :uid AND block_uid is IN (:b_uids)",
-                        soci::use(accountUid), soci::use(blocks);
-                    fmt::print("TX DEL D\n");
-                    sql << "DELETE FROM bitcoin_transactions "
-                           "WHERE transaction_uid IN (:uids)",
-                        soci::use(txToDelete);
-                    fmt::print("TX DEL E\n");
+                    auto txuid_query_clause = "(\'" + boost::algorithm::join(txToDelete, "\',\'") + "\')";
+                    sql << ("DELETE FROM bitcoin_inputs WHERE uid IN (SELECT input_uid FROM bitcoin_transaction_inputs WHERE transaction_uid IN" + txuid_query_clause + ")");
+                    sql << ("DELETE FROM operations WHERE account_uid =\'" + accountUid + "\' AND block_uid IN " + blockuid_query_clause);
+                    sql << ("DELETE FROM bitcoin_transactions WHERE transaction_uid IN " + txuid_query_clause);
                 }
-                fmt::print("TX DEL A\n");
-                sql << "DELETE FROM blocks where uid IN (:uids)",
-                        soci::use(blocks);
+                sql << "DELETE FROM blocks where uid IN " + blockuid_query_clause;
             }
         }
-
     }
 }
